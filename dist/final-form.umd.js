@@ -21,24 +21,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var defineProperty = function (obj, key, value) {
   if (key in obj) {
     Object.defineProperty(obj, key, {
@@ -68,40 +50,6 @@ var _extends = Object.assign || function (target) {
   return target;
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var toConsumableArray = function (arr) {
   if (Array.isArray(arr)) {
     for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
@@ -113,6 +61,7 @@ var toConsumableArray = function (arr) {
 };
 
 //      
+
 var getIn = function getIn(state, complexKey) {
   // Intentionally using iteration rather than recursion
   var path = toPath(complexKey);
@@ -149,6 +98,7 @@ var getIn = function getIn(state, complexKey) {
 };
 
 //      
+
 var setInRecursor = function setInRecursor(current, index, path, value) {
   if (index >= path.length) {
     // end of recursion
@@ -232,7 +182,6 @@ var setIn = function setIn(state, key, value) {
 };
 
 //      
-
 
 /**
  * Converts internal field state to published field state
@@ -328,6 +277,7 @@ function subscriptionFilter (dest, src, previous, subscription, keys, shallowEqu
 }
 
 //      
+
 var shallowEqualKeys = ['data'];
 
 /**
@@ -348,6 +298,7 @@ var filterFieldState = function filterFieldState(state, previousState, subscript
 var formSubscriptionItems = ['active', 'dirty', 'dirtySinceLastSubmit', 'error', 'errors', 'initialValues', 'invalid', 'pristine', 'submitting', 'submitError', 'submitErrors', 'submitFailed', 'submitSucceeded', 'touched', 'valid', 'validating', 'values', 'visited'];
 
 //      
+
 var shallowEqualKeys$1 = ['touched', 'visited'];
 
 /**
@@ -360,6 +311,7 @@ var filterFormState = function filterFormState(state, previousState, subscriptio
 };
 
 //      
+
 var memoize = function memoize(fn) {
   var lastArgs = void 0;
   var lastResult = void 0;
@@ -383,8 +335,9 @@ var isPromise = (function (obj) {
 });
 
 //      
+
 var FORM_ERROR = Symbol('form-error');
-var version = '4.2.0';
+var version = '4.3.1';
 
 var tripleEquals = function tripleEquals(a, b) {
   return a === b;
@@ -484,6 +437,15 @@ var createForm = function createForm(config) {
   var inBatch = false;
   var validationPaused = false;
   var validationBlocked = false;
+  var nextAsyncValidationKey = 0;
+  var asyncValidationPromises = {};
+  var clearAsyncValidationPromise = function clearAsyncValidationPromise(key) {
+    return function (result) {
+      delete asyncValidationPromises[key];
+      return result;
+    };
+  };
+
   var changeValue = function changeValue(state, name, mutate) {
     if (state.fields[name]) {
       var before = getIn(state.formState.values, name);
@@ -493,30 +455,37 @@ var createForm = function createForm(config) {
   };
 
   // bind state to mutators
-  var mutatorsApi = mutators && Object.keys(mutators).reduce(function (result, key) {
-    result[key] = function () {
+  var getMutatorApi = function getMutatorApi(key) {
+    return function () {
       for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
       }
 
-      var mutatableState = {
-        formState: state.formState,
-        fields: state.fields
-      };
-      var returnValue = mutators[key](args, mutatableState, {
-        changeValue: changeValue,
-        getIn: getIn,
-        setIn: setIn,
-        shallowEqual: shallowEqual
-      });
-      state.formState = mutatableState.formState;
-      state.fields = mutatableState.fields;
-      runValidation(undefined, function () {
-        notifyFieldListeners();
-        notifyFormListeners();
-      });
-      return returnValue;
+      if (mutators) {
+        // ^^ causes branch coverage warning, but needed to appease the Flow gods
+        var mutatableState = {
+          formState: state.formState,
+          fields: state.fields
+        };
+        var returnValue = mutators[key](args, mutatableState, {
+          changeValue: changeValue,
+          getIn: getIn,
+          setIn: setIn,
+          shallowEqual: shallowEqual
+        });
+        state.formState = mutatableState.formState;
+        state.fields = mutatableState.fields;
+        runValidation(undefined, function () {
+          notifyFieldListeners();
+          notifyFormListeners();
+        });
+        return returnValue;
+      }
     };
+  };
+
+  var mutatorsApi = mutators && Object.keys(mutators).reduce(function (result, key) {
+    result[key] = getMutatorApi(key);
     return result;
   }, {}) || {};
 
@@ -525,7 +494,10 @@ var createForm = function createForm(config) {
     if (validate) {
       var errorsOrPromise = validate(_extends({}, state.formState.values)); // clone to avoid writing
       if (isPromise(errorsOrPromise)) {
-        promises.push(errorsOrPromise.then(setErrors));
+        var asyncValidationPromiseKey = nextAsyncValidationKey++;
+        var promise = errorsOrPromise.then(setErrors).then(clearAsyncValidationPromise(asyncValidationPromiseKey));
+        promises.push(promise);
+        asyncValidationPromises[asyncValidationPromiseKey] = promise;
       } else {
         setErrors(errorsOrPromise);
       }
@@ -551,7 +523,10 @@ var createForm = function createForm(config) {
       validators.forEach(function (validator) {
         var errorOrPromise = validator(getIn(state.formState.values, field.name), state.formState.values);
         if (errorOrPromise && isPromise(errorOrPromise)) {
-          promises.push(errorOrPromise.then(setError));
+          var asyncValidationPromiseKey = nextAsyncValidationKey++;
+          var promise = errorOrPromise.then(setError).then(clearAsyncValidationPromise(asyncValidationPromiseKey));
+          promises.push(promise);
+          asyncValidationPromises[asyncValidationPromiseKey] = promise;
         } else if (!error) {
           // first registered validator wins
           error = errorOrPromise;
@@ -707,17 +682,28 @@ var createForm = function createForm(config) {
     }, {}));
   };
 
+  var notifying = false;
+  var scheduleNotification = false;
   var notifyFormListeners = function notifyFormListeners() {
-    callDebug();
-    if (inBatch) {
-      return;
-    }
-    var lastFormState = state.lastFormState;
+    if (notifying) {
+      scheduleNotification = true;
+    } else {
+      notifying = true;
+      callDebug();
+      if (!inBatch) {
+        var lastFormState = state.lastFormState;
 
-    var nextFormState = calculateNextFormState();
-    if (nextFormState !== lastFormState) {
-      state.lastFormState = nextFormState;
-      notify(state.subscribers, nextFormState, lastFormState, filterFormState);
+        var nextFormState = calculateNextFormState();
+        if (nextFormState !== lastFormState) {
+          state.lastFormState = nextFormState;
+          notify(state.subscribers, nextFormState, lastFormState, filterFormState);
+        }
+      }
+      notifying = false;
+      if (scheduleNotification) {
+        scheduleNotification = false;
+        notifyFormListeners();
+      }
     }
   };
 
@@ -895,6 +881,10 @@ var createForm = function createForm(config) {
     },
 
     reset: function reset() {
+      state.formState.submitFailed = false;
+      state.formState.submitSucceeded = false;
+      delete state.formState.submitErrors;
+      delete state.formState.lastSubmittedValues;
       api.initialize(state.formState.initialValues || {});
     },
 
@@ -908,6 +898,49 @@ var createForm = function createForm(config) {
         });
       }
       validationBlocked = false;
+    },
+
+    setConfig: function setConfig(name, value) {
+      switch (name) {
+        case 'debug':
+          debug = value;
+          break;
+        case 'initialValues':
+          api.initialize(value);
+          break;
+        case 'mutators':
+          mutators = value;
+          if (value) {
+            Object.keys(mutatorsApi).forEach(function (key) {
+              if (!(key in value)) {
+                delete mutatorsApi[key];
+              }
+            });
+            Object.keys(value).forEach(function (key) {
+              mutatorsApi[key] = getMutatorApi(key);
+            });
+          } else {
+            Object.keys(mutatorsApi).forEach(function (key) {
+              delete mutatorsApi[key];
+            });
+          }
+          break;
+        case 'onSubmit':
+          onSubmit = value;
+          break;
+        case 'validate':
+          validate = value;
+          runValidation(undefined, function () {
+            notifyFieldListeners();
+            notifyFormListeners();
+          });
+          break;
+        case 'validateOnBlur':
+          validateOnBlur = value;
+          break;
+        default:
+          throw new Error('Unrecognised option ' + name);
+      }
     },
 
     submit: function submit() {
@@ -924,6 +957,18 @@ var createForm = function createForm(config) {
         notifyFieldListeners();
         return; // no submit for you!!
       }
+      var asyncValidationPromisesKeys = Object.keys(asyncValidationPromises);
+      if (asyncValidationPromisesKeys.length) {
+        // still waiting on async validation to complete...
+        Promise.all(asyncValidationPromisesKeys.reduce(function (result, key) {
+          result.push(asyncValidationPromises[Number(key)]);
+          return result;
+        }, [])).then(function () {
+          return api.submit();
+        });
+        return;
+      }
+
       var resolvePromise = void 0;
       var completeCalled = false;
       var complete = function complete(errors) {
