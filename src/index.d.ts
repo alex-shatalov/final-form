@@ -153,6 +153,7 @@ export interface FormApi {
   change: (name: string, value?: any) => void
   focus: (name: string) => void
   initialize: (values: object) => void
+  getFieldState: (field: string) => FieldState | undefined
   getRegisteredFields: () => string[]
   getState: () => FormState
   mutators: { [key: string]: Function }
@@ -213,6 +214,7 @@ export type Decorator = (form: FormApi) => Unsubscribe
 export function createForm(config: Config): FormApi
 export const fieldSubscriptionItems: string[]
 export const formSubscriptionItems: string[]
+export const ARRAY_ERROR: any
 export const FORM_ERROR: any
 export function getIn(state: object, complexKey: string): any
 export function setIn(state: object, key: string, value: any): object

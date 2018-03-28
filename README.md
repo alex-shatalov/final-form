@@ -3,7 +3,7 @@
 ![Final Form](banner.png)
 
 [![NPM Version](https://img.shields.io/npm/v/final-form.svg?style=flat)](https://www.npmjs.com/package/final-form)
-[![NPM Downloads](https://img.shields.io/npm/dm/final-form.svg?style=flat)](https://www.npmjs.com/package/final-form)
+[![NPM Downloads](https://img.shields.io/npm/dm/final-form.svg?style=flat)](https://npm-stat.com/charts.html?package=final-form)
 [![Build Status](https://travis-ci.org/final-form/final-form.svg?branch=master)](https://travis-ci.org/final-form/final-form)
 [![codecov.io](https://codecov.io/gh/final-form/final-form/branch/master/graph/badge.svg)](https://codecov.io/gh/final-form/final-form)
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
@@ -14,7 +14,15 @@
 
 ✅ Opt-in subscriptions - only update on the state you need!
 
-✅ 💥 [**4.1k gzipped**](https://bundlephobia.com/result?p=final-form) 💥
+✅ 💥 [**3.9k gzipped**](https://bundlephobia.com/result?p=final-form) 💥
+
+---
+
+## 💬 [Give Feedback on Final Form](https://goo.gl/forms/dxdfxKNy64DLb99z2) 💬
+
+In the interest of making 🏁 Final Form the best library it can be, we'd love your thoughts and feedback.
+
+[Take a quick survey](https://goo.gl/forms/dxdfxKNy64DLb99z2).
 
 ---
 
@@ -166,6 +174,7 @@ form.submit() // only submits if all validation passes
     * [`blur: (name: string) => void`](#blur-name-string--void)
     * [`change: (name: string, value: ?any) => void`](#change-name-string-value-any--void)
     * [`focus: (name: string) => void`](#focus-name-string--void)
+    * [`getFormState: (field: string) => FieldState`](#getformstate-field-string--fieldstate)
     * [`getRegisteredFields: () => string[]`](#getregisteredfields---string)
     * [`getState: () => FormState`](#getstate---formstate)
     * [`initialize: (values: Object) => void`](#initialize-values-object--void)
@@ -330,6 +339,10 @@ field. Useful for subscribing to everything.
 
 An _à la carte_ list of all the possible things you can subscribe to for a form.
 Useful for subscribing to everything.
+
+### `ARRAY_ERROR: Symbol`
+
+A special `Symbol` key used to return an error for an array of fields.
 
 ### `FORM_ERROR: Symbol`
 
@@ -629,6 +642,10 @@ Changes the value of the given field.
 #### `focus: (name: string) => void`
 
 Focuses (marks active) the given field.
+
+#### `getFieldState: (field: string) => ?FieldState`
+
+Returns the state of a specific field as it was last reported to its listeners, or `undefined` if the field has not been registered.
 
 #### `getRegisteredFields: () => string[]`
 

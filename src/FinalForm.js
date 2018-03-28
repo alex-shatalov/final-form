@@ -26,8 +26,7 @@ import type {
   Subscription,
   Unsubscribe
 } from './types'
-
-export const FORM_ERROR = Symbol('form-error')
+import { FORM_ERROR, ARRAY_ERROR } from './symbols'
 export const version = '4.3.1'
 
 const tripleEquals: IsEqual = (a: any, b: any): boolean => a === b
@@ -285,9 +284,11 @@ const createForm = (config: Config): FormApi => {
     }
 
     // pare down field keys to actually validate
+    let limitedFieldLevelValidation = false
     if (fieldChanged) {
       const { validateFields } = fields[fieldChanged]
       if (validateFields) {
+        limitedFieldLevelValidation = true
         fieldKeys = validateFields.length
           ? validateFields.concat(fieldChanged)
           : [fieldChanged]
@@ -312,15 +313,39 @@ const createForm = (config: Config): FormApi => {
     ]
 
     const processErrors = () => {
-      let merged = { ...recordLevelErrors }
-      fieldKeys.forEach(name => {
-        if (fields[name]) {
-          // make sure field is still registered
-          // field-level errors take precedent over record-level errors
-          const error = fieldLevelErrors[name] || getIn(recordLevelErrors, name)
-          if (error) {
-            merged = setIn(merged, name, error)
+      let merged = {
+        ...(limitedFieldLevelValidation ? formState.errors : {}),
+        ...recordLevelErrors
+      }
+      const forEachError = (fn: (name: string, error: any) => void) => {
+        fieldKeys.forEach(name => {
+          if (fields[name]) {
+            // make sure field is still registered
+            // field-level errors take precedent over record-level errors
+            const recordLevelError = getIn(recordLevelErrors, name)
+            const errorFromParent = getIn(merged, name)
+            const hasFieldLevelValidation = getValidators(fields[name]).length
+            const fieldLevelError = fieldLevelErrors[name]
+            fn(
+              name,
+              (hasFieldLevelValidation && fieldLevelError) ||
+                (validate && recordLevelError) ||
+                (!recordLevelError && !limitedFieldLevelValidation
+                  ? errorFromParent
+                  : undefined)
+            )
           }
+        })
+      }
+      forEachError((name, error) => {
+        merged = setIn(merged, name, error) || {}
+      })
+      forEachError((name, error) => {
+        if (error && error[ARRAY_ERROR]) {
+          const existing = getIn(merged, name)
+          const copy: any = [...existing]
+          copy[ARRAY_ERROR] = error[ARRAY_ERROR]
+          merged = setIn(merged, name, copy)
         }
       })
       if (!shallowEqual(formState.errors, merged)) {
@@ -526,6 +551,11 @@ const createForm = (config: Config): FormApi => {
     },
 
     mutators: mutatorsApi,
+
+    getFieldState: name => {
+      const field = state.fields[name]
+      return field && field.lastFieldState
+    },
 
     getRegisteredFields: () => Object.keys(state.fields),
 

@@ -1,4 +1,5 @@
 import createForm from './FinalForm'
+import { ARRAY_ERROR } from './symbols'
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const onSubmitMock = (values, callback) => {}
@@ -518,7 +519,10 @@ describe('Field.validation', () => {
       'customers',
       array,
       { error: true },
-      { getValidator: () => validate }
+      {
+        getValidator: () => validate,
+        validateFields: []
+      }
     )
     expect(validate).toHaveBeenCalledTimes(1)
     expect(validate.mock.calls[0][0]).toBeUndefined()
@@ -776,5 +780,151 @@ describe('Field.validation', () => {
 
     expect(validate).toHaveBeenCalledTimes(2)
     expect(fooValidate).toHaveBeenCalledTimes(1)
+  })
+
+  it('should allow for array fields to both have errors and for the array itself to have an error', () => {
+    const validate = jest.fn(values => {
+      const errors = {}
+      errors.items = values.items.map(value => (value ? undefined : 'Required'))
+      errors.items[ARRAY_ERROR] = 'Need more items'
+      return errors
+    })
+
+    const form = createForm({
+      onSubmit: onSubmitMock,
+      validate,
+      initialValues: {
+        items: ['Dog', '']
+      }
+    })
+    expect(validate).toHaveBeenCalledTimes(1)
+
+    const items = jest.fn()
+    const items0 = jest.fn()
+    const items1 = jest.fn()
+    form.registerField('items', items, { error: true })
+    expect(items).toHaveBeenCalled()
+    expect(items).toHaveBeenCalledTimes(1)
+    expect(items.mock.calls[0][0].error).toBe('Need more items')
+
+    form.registerField('items[0]', items0, { error: true })
+    expect(items0).toHaveBeenCalled()
+    expect(items0).toHaveBeenCalledTimes(1)
+    expect(items0.mock.calls[0][0].error).toBeUndefined()
+
+    form.registerField('items[1]', items1, { error: true })
+    expect(items1).toHaveBeenCalled()
+    expect(items1).toHaveBeenCalledTimes(1)
+    expect(items1.mock.calls[0][0].error).toBe('Required')
+
+    expect(validate).toHaveBeenCalledTimes(4)
+
+    form.change('items[1]', 'Cat')
+    expect(validate).toHaveBeenCalledTimes(5)
+    expect(items).toHaveBeenCalledTimes(1)
+    expect(items0).toHaveBeenCalledTimes(1)
+    expect(items1).toHaveBeenCalledTimes(2)
+    expect(items1.mock.calls[1][0].error).toBeUndefined()
+  })
+
+  it('should not blow away all field-level validation errors when one is remedied and no validateFields', () => {
+    // https://github.com/final-form/final-form/issues/75
+    const form = createForm({ onSubmit: onSubmitMock })
+    const config = {
+      getValidator: () => value => (value ? undefined : 'Required'),
+      validateFields: []
+    }
+
+    const foo = jest.fn()
+    const bar = jest.fn()
+    form.registerField('foo', foo, { error: true }, config)
+    form.registerField('bar', bar, { error: true }, config)
+
+    expect(foo).toHaveBeenCalled()
+    expect(foo).toHaveBeenCalledTimes(1)
+    expect(foo.mock.calls[0][0].error).toBe('Required')
+
+    expect(bar).toHaveBeenCalled()
+    expect(bar).toHaveBeenCalledTimes(1)
+    expect(bar.mock.calls[0][0].error).toBe('Required')
+
+    form.change('bar', 'hi')
+
+    expect(foo).toHaveBeenCalledTimes(1)
+    expect(bar).toHaveBeenCalledTimes(2)
+    expect(bar.mock.calls[1][0].error).toBeUndefined()
+  })
+
+  it('should not blow away all field-level validation errors when one is remedied and one validateFields', () => {
+    const form = createForm({ onSubmit: onSubmitMock })
+
+    const foo = jest.fn()
+    const bar = jest.fn()
+    form.registerField(
+      'foo',
+      foo,
+      { error: true },
+      {
+        getValidator: () => value => (value ? undefined : 'Required'),
+        validateFields: ['baz']
+      }
+    )
+    form.registerField(
+      'bar',
+      bar,
+      { error: true },
+      {
+        getValidator: () => value => (value ? undefined : 'Required'),
+        validateFields: ['baz']
+      }
+    )
+    form.registerField('baz', () => {}, {})
+
+    expect(foo).toHaveBeenCalled()
+    expect(foo).toHaveBeenCalledTimes(1)
+    expect(foo.mock.calls[0][0].error).toBe('Required')
+
+    expect(bar).toHaveBeenCalled()
+    expect(bar).toHaveBeenCalledTimes(1)
+    expect(bar.mock.calls[0][0].error).toBe('Required')
+
+    form.change('bar', 'hi')
+
+    expect(foo).toHaveBeenCalledTimes(1)
+    expect(bar).toHaveBeenCalledTimes(2)
+    expect(bar.mock.calls[1][0].error).toBeUndefined()
+  })
+
+  it('should show form as invalid if has field-level validation errors', () => {
+    // Created while debugging https://github.com/final-form/react-final-form/issues/196
+    const form = createForm({ onSubmit: onSubmitMock })
+    const spy = jest.fn()
+    form.subscribe(spy, { invalid: true })
+    expect(spy).toHaveBeenCalled()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy.mock.calls[0][0].invalid).toBe(false)
+
+    const foo = jest.fn()
+    form.registerField(
+      'foo',
+      foo,
+      { error: true, invalid: true },
+      { getValidator: () => value => (value ? undefined : 'Required') }
+    )
+
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect(spy.mock.calls[1][0].invalid).toBe(true)
+    expect(foo).toHaveBeenCalled()
+    expect(foo).toHaveBeenCalledTimes(1)
+    expect(foo.mock.calls[0][0].error).toBe('Required')
+    expect(foo.mock.calls[0][0].invalid).toBe(true)
+
+    form.change('foo', 'hi')
+
+    expect(spy).toHaveBeenCalledTimes(3)
+    expect(spy.mock.calls[2][0].invalid).toBe(false)
+    expect(foo).toHaveBeenCalledTimes(2)
+    expect(foo.mock.calls[1][0].error).toBeUndefined()
+    expect(foo.mock.calls[1][0].invalid).toBe(false)
   })
 })
