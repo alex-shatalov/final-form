@@ -179,6 +179,9 @@ var setIn = function setIn(state, key, value) {
   return setInRecursor(state, 0, toPath(key), value);
 };
 
+var FORM_ERROR = Symbol('form-error');
+var ARRAY_ERROR = Symbol('array-error');
+
 //      
 
 /**
@@ -203,6 +206,9 @@ var publishFieldState = function publishFieldState(formState, field) {
 
   var value = getIn(values, name);
   var error = getIn(errors, name);
+  if (error && error[ARRAY_ERROR]) {
+    error = error[ARRAY_ERROR];
+  }
   var submitError = submitErrors && getIn(submitErrors, name);
   var initial = initialValues && getIn(initialValues, name);
   var pristine = field.isEqual(initial, value);
@@ -333,8 +339,6 @@ var isPromise = (function (obj) {
 });
 
 //      
-
-var FORM_ERROR = Symbol('form-error');
 var version = '4.3.1';
 
 var tripleEquals = function tripleEquals(a, b) {
@@ -559,10 +563,12 @@ var createForm = function createForm(config) {
     }
 
     // pare down field keys to actually validate
+    var limitedFieldLevelValidation = false;
     if (fieldChanged) {
       var validateFields = fields[fieldChanged].validateFields;
 
       if (validateFields) {
+        limitedFieldLevelValidation = true;
         fieldKeys = validateFields.length ? validateFields.concat(fieldChanged) : [fieldChanged];
       }
     }
@@ -578,15 +584,29 @@ var createForm = function createForm(config) {
     }, [])));
 
     var processErrors = function processErrors() {
-      var merged = _extends({}, recordLevelErrors);
-      fieldKeys.forEach(function (name) {
-        if (fields[name]) {
-          // make sure field is still registered
-          // field-level errors take precedent over record-level errors
-          var error = fieldLevelErrors[name] || getIn(recordLevelErrors, name);
-          if (error) {
-            merged = setIn(merged, name, error);
+      var merged = _extends({}, limitedFieldLevelValidation ? formState.errors : {}, recordLevelErrors);
+      var forEachError = function forEachError(fn) {
+        fieldKeys.forEach(function (name) {
+          if (fields[name]) {
+            // make sure field is still registered
+            // field-level errors take precedent over record-level errors
+            var recordLevelError = getIn(recordLevelErrors, name);
+            var errorFromParent = getIn(merged, name);
+            var hasFieldLevelValidation = getValidators(fields[name]).length;
+            var fieldLevelError = fieldLevelErrors[name];
+            fn(name, hasFieldLevelValidation && fieldLevelError || validate && recordLevelError || (!recordLevelError && !limitedFieldLevelValidation ? errorFromParent : undefined));
           }
+        });
+      };
+      forEachError(function (name, error) {
+        merged = setIn(merged, name, error) || {};
+      });
+      forEachError(function (name, error) {
+        if (error && error[ARRAY_ERROR]) {
+          var existing = getIn(merged, name);
+          var copy = [].concat(toConsumableArray(existing));
+          copy[ARRAY_ERROR] = error[ARRAY_ERROR];
+          merged = setIn(merged, name, copy);
         }
       });
       if (!shallowEqual(formState.errors, merged)) {
@@ -773,6 +793,11 @@ var createForm = function createForm(config) {
     },
 
     mutators: mutatorsApi,
+
+    getFieldState: function getFieldState(name) {
+      var field = state.fields[name];
+      return field && field.lastFieldState;
+    },
 
     getRegisteredFields: function getRegisteredFields() {
       return Object.keys(state.fields);
@@ -1049,8 +1074,9 @@ var createForm = function createForm(config) {
 //
 
 exports.createForm = createForm;
-exports.FORM_ERROR = FORM_ERROR;
 exports.version = version;
+exports.ARRAY_ERROR = ARRAY_ERROR;
+exports.FORM_ERROR = FORM_ERROR;
 exports.formSubscriptionItems = formSubscriptionItems;
 exports.fieldSubscriptionItems = fieldSubscriptionItems;
 exports.getIn = getIn;
