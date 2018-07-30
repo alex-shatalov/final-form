@@ -2,24 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-//      
-var toPath = function toPath(key) {
-  if (key === null || key === undefined) {
-    return [];
-  }
-  if (typeof key !== 'string') {
-    throw new Error('toPath() expects a string');
-  }
-  return key.length ? key.split(/[.[\]]+/).filter(Boolean) : [];
-};
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-  return typeof obj;
-} : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-};
-
-var defineProperty = function (obj, key, value) {
+function _defineProperty(obj, key, value) {
   if (key in obj) {
     Object.defineProperty(obj, key, {
       value: value,
@@ -32,30 +15,38 @@ var defineProperty = function (obj, key, value) {
   }
 
   return obj;
-};
+}
 
-var _extends = Object.assign || function (target) {
+function _objectSpread(target) {
   for (var i = 1; i < arguments.length; i++) {
-    var source = arguments[i];
+    var source = arguments[i] != null ? arguments[i] : {};
+    var ownKeys = Object.keys(source);
 
-    for (var key in source) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) {
-        target[key] = source[key];
-      }
+    if (typeof Object.getOwnPropertySymbols === 'function') {
+      ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(source, sym).enumerable;
+      }));
     }
+
+    ownKeys.forEach(function (key) {
+      _defineProperty(target, key, source[key]);
+    });
   }
 
   return target;
-};
+}
 
-var toConsumableArray = function (arr) {
-  if (Array.isArray(arr)) {
-    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-
-    return arr2;
-  } else {
-    return Array.from(arr);
+//      
+var toPath = function toPath(key) {
+  if (key === null || key === undefined || !key.length) {
+    return [];
   }
+
+  if (typeof key !== 'string') {
+    throw new Error('toPath() expects a string');
+  }
+
+  return key.split(/[.[\]]+/).filter(Boolean);
 };
 
 //      
@@ -64,67 +55,57 @@ var getIn = function getIn(state, complexKey) {
   // Intentionally using iteration rather than recursion
   var path = toPath(complexKey);
   var current = state;
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
 
-  try {
-    for (var _iterator = path[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var key = _step.value;
+  for (var i = 0; i < path.length; i++) {
+    var key = path[i];
 
-      if (current === undefined || current === null || (typeof current === 'undefined' ? 'undefined' : _typeof(current)) !== 'object' || Array.isArray(current) && isNaN(key)) {
-        return undefined;
-      }
-      current = current[key];
+    if (current === undefined || current === null || typeof current !== 'object' || Array.isArray(current) && isNaN(key)) {
+      return undefined;
     }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
+
+    current = current[key];
   }
 
   return current;
 };
-
-//      
 
 var setInRecursor = function setInRecursor(current, index, path, value) {
   if (index >= path.length) {
     // end of recursion
     return value;
   }
-  var key = path[index];
 
-  // determine type of key
+  var key = path[index]; // determine type of key
+
   if (isNaN(key)) {
+    var _objectSpread2;
+
     // object set
     if (current === undefined || current === null) {
-      // recurse
-      var _result2 = setInRecursor(undefined, index + 1, path, value);
+      var _ref;
 
-      // delete or create an object
-      return _result2 === undefined ? undefined : defineProperty({}, key, _result2);
+      // recurse
+      var _result2 = setInRecursor(undefined, index + 1, path, value); // delete or create an object
+
+
+      return _result2 === undefined ? undefined : (_ref = {}, _ref[key] = _result2, _ref);
     }
+
     if (Array.isArray(current)) {
       throw new Error('Cannot set a non-numeric property on an array');
-    }
-    // current exists, so make a copy of all its values, and add/update the new one
+    } // current exists, so make a copy of all its values, and add/update the new one
+
+
     var _result = setInRecursor(current[key], index + 1, path, value);
+
     var numKeys = Object.keys(current).length;
+
     if (_result === undefined) {
       if (current[key] === undefined && numKeys === 0) {
         // object was already empty
         return undefined;
       }
+
       if (current[key] !== undefined && numKeys <= 1) {
         // only key we had was the one we are deleting
         if (!isNaN(path[index - 1])) {
@@ -134,59 +115,65 @@ var setInRecursor = function setInRecursor(current, index, path, value) {
           return undefined;
         }
       }
-    }
-    // set result in key
-    return _extends({}, current, defineProperty({}, key, _result));
-  }
-  // array set
+    } // set result in key
+
+
+    return _objectSpread({}, current, (_objectSpread2 = {}, _objectSpread2[key] = _result, _objectSpread2));
+  } // array set
+
+
   var numericKey = Number(key);
+
   if (current === undefined || current === null) {
     // recurse
-    var _result3 = setInRecursor(undefined, index + 1, path, value);
+    var _result3 = setInRecursor(undefined, index + 1, path, value); // if nothing returned, delete it
 
-    // if nothing returned, delete it
+
     if (_result3 === undefined) {
       return undefined;
-    }
+    } // create an array
 
-    // create an array
+
     var _array = [];
     _array[numericKey] = _result3;
     return _array;
   }
+
   if (!Array.isArray(current)) {
     throw new Error('Cannot set a numeric property on an object');
-  }
-  // recurse
-  var existingValue = current[numericKey];
-  var result = setInRecursor(existingValue, index + 1, path, value);
+  } // recurse
 
-  // current exists, so make a copy of all its values, and add/update the new one
-  var array = [].concat(toConsumableArray(current));
+
+  var existingValue = current[numericKey];
+  var result = setInRecursor(existingValue, index + 1, path, value); // current exists, so make a copy of all its values, and add/update the new one
+
+  var array = current.concat();
   array[numericKey] = result;
   return array;
 };
 
 var setIn = function setIn(state, key, value) {
   if (state === undefined || state === null) {
-    throw new Error('Cannot call setIn() with ' + String(state) + ' state');
+    throw new Error("Cannot call setIn() with " + String(state) + " state");
   }
+
   if (key === undefined || key === null) {
-    throw new Error('Cannot call setIn() with ' + String(key) + ' key');
-  }
-  // Recursive function needs to accept and return State, but public API should
+    throw new Error("Cannot call setIn() with " + String(key) + " key");
+  } // Recursive function needs to accept and return State, but public API should
   // only deal with Objects
+
+
   return setInRecursor(state, 0, toPath(key), value);
 };
 
-var FORM_ERROR = Symbol('form-error');
-var ARRAY_ERROR = Symbol('array-error');
+var FORM_ERROR = 'FINAL_FORM/form-error';
+var ARRAY_ERROR = 'FINAL_FORM/array-error';
 
 //      
-
 /**
  * Converts internal field state to published field state
  */
+
 var publishFieldState = function publishFieldState(formState, field) {
   var errors = formState.errors,
       initialValues = formState.initialValues,
@@ -203,12 +190,13 @@ var publishFieldState = function publishFieldState(formState, field) {
       name = field.name,
       touched = field.touched,
       visited = field.visited;
-
   var value = getIn(values, name);
   var error = getIn(errors, name);
+
   if (error && error[ARRAY_ERROR]) {
     error = error[ARRAY_ERROR];
   }
+
   var submitError = submitErrors && getIn(submitErrors, name);
   var initial = initialValues && getIn(initialValues, name);
   var pristine = field.isEqual(initial, value);
@@ -242,27 +230,32 @@ var publishFieldState = function publishFieldState(formState, field) {
 var fieldSubscriptionItems = ['active', 'data', 'dirty', 'dirtySinceLastSubmit', 'error', 'initial', 'invalid', 'length', 'pristine', 'submitError', 'submitFailed', 'submitSucceeded', 'touched', 'valid', 'value', 'visited'];
 
 //      
-
-
 var shallowEqual = function shallowEqual(a, b) {
   if (a === b) {
     return true;
   }
-  if ((typeof a === 'undefined' ? 'undefined' : _typeof(a)) !== 'object' || !a || (typeof b === 'undefined' ? 'undefined' : _typeof(b)) !== 'object' || !b) {
+
+  if (typeof a !== 'object' || !a || typeof b !== 'object' || !b) {
     return false;
   }
+
   var keysA = Object.keys(a);
   var keysB = Object.keys(b);
+
   if (keysA.length !== keysB.length) {
     return false;
   }
+
   var bHasOwnProperty = Object.prototype.hasOwnProperty.bind(b);
+
   for (var idx = 0; idx < keysA.length; idx++) {
     var key = keysA[idx];
+
     if (!bHasOwnProperty(key) || a[key] !== b[key]) {
       return false;
     }
   }
+
   return true;
 };
 
@@ -272,6 +265,7 @@ function subscriptionFilter (dest, src, previous, subscription, keys, shallowEqu
   keys.forEach(function (key) {
     if (subscription[key]) {
       dest[key] = src[key];
+
       if (!previous || (~shallowEqualKeys.indexOf(key) ? !shallowEqual(src[key], previous[key]) : src[key] !== previous[key])) {
         different = true;
       }
@@ -281,12 +275,11 @@ function subscriptionFilter (dest, src, previous, subscription, keys, shallowEqu
 }
 
 //      
-
 var shallowEqualKeys = ['data'];
-
 /**
  * Filters items in a FieldState based on a FieldSubscription
  */
+
 var filterFieldState = function filterFieldState(state, previousState, subscription, force) {
   var result = {
     blur: state.blur,
@@ -299,15 +292,14 @@ var filterFieldState = function filterFieldState(state, previousState, subscript
 };
 
 //      
-var formSubscriptionItems = ['active', 'dirty', 'dirtySinceLastSubmit', 'error', 'errors', 'initialValues', 'invalid', 'pristine', 'submitting', 'submitError', 'submitErrors', 'submitFailed', 'submitSucceeded', 'touched', 'valid', 'validating', 'values', 'visited'];
+var formSubscriptionItems = ['active', 'dirty', 'dirtySinceLastSubmit', 'error', 'errors', 'hasSubmitErrors', 'hasValidationErrors', 'initialValues', 'invalid', 'pristine', 'submitting', 'submitError', 'submitErrors', 'submitFailed', 'submitSucceeded', 'touched', 'valid', 'validating', 'values', 'visited'];
 
 //      
-
 var shallowEqualKeys$1 = ['touched', 'visited'];
-
 /**
  * Filters items in a FormState based on a FormSubscription
  */
+
 var filterFormState = function filterFormState(state, previousState, subscription, force) {
   var result = {};
   var different = subscriptionFilter(result, state, previousState, subscription, formSubscriptionItems, shallowEqualKeys$1) || !previousState;
@@ -317,10 +309,10 @@ var filterFormState = function filterFormState(state, previousState, subscriptio
 //      
 
 var memoize = function memoize(fn) {
-  var lastArgs = void 0;
-  var lastResult = void 0;
+  var lastArgs;
+  var lastResult;
   return function () {
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
 
@@ -328,21 +320,34 @@ var memoize = function memoize(fn) {
       return !shallowEqual(lastArgs[index], arg);
     })) {
       lastArgs = args;
-      lastResult = fn.apply(undefined, args);
+      lastResult = fn.apply(void 0, args);
     }
+
     return lastResult;
   };
 };
 
 var isPromise = (function (obj) {
-  return !!obj && ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' || typeof obj === 'function') && typeof obj.then === 'function';
+  return !!obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function';
 });
 
-//      
-var version = '4.3.1';
+var configOptions = ['debug', 'initialValues', 'keepDirtyOnReinitialize', 'mutators', 'onSubmit', 'validate', 'validateOnBlur'];
+var version = '4.8.1';
 
 var tripleEquals = function tripleEquals(a, b) {
   return a === b;
+};
+
+var hasAnyError = function hasAnyError(errors) {
+  return Object.keys(errors).some(function (key) {
+    var value = errors[key];
+
+    if (value && typeof value === 'object') {
+      return hasAnyError(value);
+    }
+
+    return typeof value !== 'undefined';
+  });
 };
 
 var convertToExternalFormState = function convertToExternalFormState(_ref) {
@@ -366,6 +371,8 @@ var convertToExternalFormState = function convertToExternalFormState(_ref) {
     dirtySinceLastSubmit: dirtySinceLastSubmit,
     error: error,
     errors: errors,
+    hasSubmitErrors: !!(submitError || submitErrors && hasAnyError(submitErrors)),
+    hasValidationErrors: !!(error || hasAnyError(errors)),
     invalid: !valid,
     initialValues: initialValues,
     pristine: pristine,
@@ -380,10 +387,13 @@ var convertToExternalFormState = function convertToExternalFormState(_ref) {
   };
 };
 
-function notifySubscriber(subscriber, subscription, state, lastState, filter) {
-  var force = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
+function notifySubscriber(subscriber, subscription, state, lastState, filter, force) {
+  if (force === void 0) {
+    force = false;
+  }
 
   var notification = filter(state, lastState, subscription, force);
+
   if (notification) {
     subscriber(notification);
   }
@@ -391,12 +401,10 @@ function notifySubscriber(subscriber, subscription, state, lastState, filter) {
 
 function notify(_ref2, state, lastState, filter) {
   var entries = _ref2.entries;
-
   Object.keys(entries).forEach(function (key) {
     var _entries$Number = entries[Number(key)],
         subscription = _entries$Number.subscription,
         subscriber = _entries$Number.subscriber;
-
     notifySubscriber(subscriber, subscription, state, lastState, filter);
   });
 }
@@ -405,7 +413,10 @@ var createForm = function createForm(config) {
   if (!config) {
     throw new Error('No config specified');
   }
+
   var debug = config.debug,
+      destroyOnUnregister = config.destroyOnUnregister,
+      keepDirtyOnReinitialize = config.keepDirtyOnReinitialize,
       initialValues = config.initialValues,
       mutators = config.mutators,
       onSubmit = config.onSubmit,
@@ -418,13 +429,16 @@ var createForm = function createForm(config) {
   }
 
   var state = {
-    subscribers: { index: 0, entries: {} },
+    subscribers: {
+      index: 0,
+      entries: {}
+    },
     fieldSubscribers: {},
     fields: {},
     formState: {
       dirtySinceLastSubmit: false,
       errors: {},
-      initialValues: initialValues && _extends({}, initialValues),
+      initialValues: initialValues && _objectSpread({}, initialValues),
       invalid: false,
       pristine: true,
       submitting: false,
@@ -432,7 +446,7 @@ var createForm = function createForm(config) {
       submitSucceeded: false,
       valid: true,
       validating: 0,
-      values: initialValues ? _extends({}, initialValues) : {}
+      values: initialValues ? _objectSpread({}, initialValues) : {}
     },
     lastFormState: undefined
   };
@@ -441,6 +455,7 @@ var createForm = function createForm(config) {
   var validationBlocked = false;
   var nextAsyncValidationKey = 0;
   var asyncValidationPromises = {};
+
   var clearAsyncValidationPromise = function clearAsyncValidationPromise(key) {
     return function (result) {
       delete asyncValidationPromises[key];
@@ -449,26 +464,26 @@ var createForm = function createForm(config) {
   };
 
   var changeValue = function changeValue(state, name, mutate) {
-    if (state.fields[name]) {
-      var before = getIn(state.formState.values, name);
-      var after = mutate(before);
-      state.formState.values = setIn(state.formState.values, name, after) || {};
-    }
-  };
+    var before = getIn(state.formState.values, name);
+    var after = mutate(before);
+    state.formState.values = setIn(state.formState.values, name, after) || {};
+  }; // bind state to mutators
 
-  // bind state to mutators
+
   var getMutatorApi = function getMutatorApi(key) {
     return function () {
-      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-
+      // istanbul ignore next
       if (mutators) {
         // ^^ causes branch coverage warning, but needed to appease the Flow gods
         var mutatableState = {
           formState: state.formState,
           fields: state.fields
         };
+
+        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments[_key];
+        }
+
         var returnValue = mutators[key](args, mutatableState, {
           changeValue: changeValue,
           getIn: getIn,
@@ -493,8 +508,10 @@ var createForm = function createForm(config) {
 
   var runRecordLevelValidation = function runRecordLevelValidation(setErrors) {
     var promises = [];
+
     if (validate) {
-      var errorsOrPromise = validate(_extends({}, state.formState.values)); // clone to avoid writing
+      var errorsOrPromise = validate(_objectSpread({}, state.formState.values)); // clone to avoid writing
+
       if (isPromise(errorsOrPromise)) {
         var asyncValidationPromiseKey = nextAsyncValidationKey++;
         var promise = errorsOrPromise.then(setErrors).then(clearAsyncValidationPromise(asyncValidationPromiseKey));
@@ -504,15 +521,18 @@ var createForm = function createForm(config) {
         setErrors(errorsOrPromise);
       }
     }
+
     return promises;
   };
 
   var getValidators = function getValidators(field) {
     return Object.keys(field.validators).reduce(function (result, index) {
       var validator = field.validators[Number(index)]();
+
       if (validator) {
         result.push(validator);
       }
+
       return result;
     }, []);
   };
@@ -520,10 +540,12 @@ var createForm = function createForm(config) {
   var runFieldLevelValidation = function runFieldLevelValidation(field, setError) {
     var promises = [];
     var validators = getValidators(field);
+
     if (validators.length) {
-      var error = void 0;
+      var error;
       validators.forEach(function (validator) {
         var errorOrPromise = validator(getIn(state.formState.values, field.name), state.formState.values);
+
         if (errorOrPromise && isPromise(errorOrPromise)) {
           var asyncValidationPromiseKey = nextAsyncValidationKey++;
           var promise = errorOrPromise.then(setError).then(clearAsyncValidationPromise(asyncValidationPromiseKey));
@@ -536,6 +558,7 @@ var createForm = function createForm(config) {
       });
       setError(error);
     }
+
     return promises;
   };
 
@@ -543,48 +566,57 @@ var createForm = function createForm(config) {
     if (validationPaused) {
       validationBlocked = true;
       /* istanbul ignore next */
+
       if (callback) {
         callback();
       }
+
       return;
     }
 
     var fields = state.fields,
         formState = state.formState;
-
     var fieldKeys = Object.keys(fields);
+
     if (!validate && !fieldKeys.some(function (key) {
       return getValidators(fields[key]).length;
     })) {
       if (callback) {
         callback();
       }
+
       return; // no validation rules
-    }
+    } // pare down field keys to actually validate
 
-    // pare down field keys to actually validate
+
     var limitedFieldLevelValidation = false;
-    if (fieldChanged) {
-      var validateFields = fields[fieldChanged].validateFields;
 
-      if (validateFields) {
-        limitedFieldLevelValidation = true;
-        fieldKeys = validateFields.length ? validateFields.concat(fieldChanged) : [fieldChanged];
+    if (fieldChanged) {
+      var changedField = fields[fieldChanged];
+
+      if (changedField) {
+        var validateFields = changedField.validateFields;
+
+        if (validateFields) {
+          limitedFieldLevelValidation = true;
+          fieldKeys = validateFields.length ? validateFields.concat(fieldChanged) : [fieldChanged];
+        }
       }
     }
 
     var recordLevelErrors = {};
     var fieldLevelErrors = {};
-    var promises = [].concat(toConsumableArray(runRecordLevelValidation(function (errors) {
+    var promises = runRecordLevelValidation(function (errors) {
       recordLevelErrors = errors || {};
-    })), toConsumableArray(fieldKeys.reduce(function (result, name) {
+    }).concat(fieldKeys.reduce(function (result, name) {
       return result.concat(runFieldLevelValidation(fields[name], function (error) {
         fieldLevelErrors[name] = error;
       }));
-    }, [])));
+    }, []));
 
     var processErrors = function processErrors() {
-      var merged = _extends({}, limitedFieldLevelValidation ? formState.errors : {}, recordLevelErrors);
+      var merged = _objectSpread({}, limitedFieldLevelValidation ? formState.errors : {}, recordLevelErrors);
+
       var forEachError = function forEachError(fn) {
         fieldKeys.forEach(function (name) {
           if (fields[name]) {
@@ -598,29 +630,33 @@ var createForm = function createForm(config) {
           }
         });
       };
+
       forEachError(function (name, error) {
         merged = setIn(merged, name, error) || {};
       });
       forEachError(function (name, error) {
         if (error && error[ARRAY_ERROR]) {
           var existing = getIn(merged, name);
-          var copy = [].concat(toConsumableArray(existing));
+          var copy = existing.concat();
           copy[ARRAY_ERROR] = error[ARRAY_ERROR];
           merged = setIn(merged, name, copy);
         }
       });
+
       if (!shallowEqual(formState.errors, merged)) {
         formState.errors = merged;
       }
-      formState.error = recordLevelErrors[FORM_ERROR];
-    };
 
-    // process sync errors
+      formState.error = recordLevelErrors[FORM_ERROR];
+    }; // process sync errors
+
+
     processErrors();
 
     if (promises.length) {
       // sync errors have been set. notify listeners while we wait for others
       state.formState.validating++;
+
       if (callback) {
         callback();
       }
@@ -628,6 +664,7 @@ var createForm = function createForm(config) {
       Promise.all(promises).then(function () {
         state.formState.validating--;
         processErrors();
+
         if (callback) {
           callback();
         }
@@ -638,53 +675,83 @@ var createForm = function createForm(config) {
   };
 
   var notifyFieldListeners = function notifyFieldListeners(force) {
-    if (inBatch) {
+    if (inBatch || validationPaused) {
       return;
     }
+
     var fields = state.fields,
         fieldSubscribers = state.fieldSubscribers,
         formState = state.formState;
-
     Object.keys(fields).forEach(function (name) {
       var field = fields[name];
       var fieldState = publishFieldState(formState, field);
       var lastFieldState = field.lastFieldState;
 
       if (!shallowEqual(fieldState, lastFieldState)) {
+        // **************************************************************
+        // Curious about why a field is getting notified? Uncomment this.
+        // **************************************************************
+        // const diffKeys = Object.keys(fieldState).filter(
+        //   key => fieldState[key] !== (lastFieldState && lastFieldState[key])
+        // )
+        // console.debug(
+        //   'notifying',
+        //   name,
+        //   '\nField State\n',
+        //   diffKeys.reduce(
+        //     (result, key) => ({ ...result, [key]: fieldState[key] }),
+        //     {}
+        //   ),
+        //   '\nLast Field State\n',
+        //   diffKeys.reduce(
+        //     (result, key) => ({
+        //       ...result,
+        //       [key]: lastFieldState && lastFieldState[key]
+        //     }),
+        //     {}
+        //   )
+        // )
         field.lastFieldState = fieldState;
         notify(fieldSubscribers[name], fieldState, lastFieldState, filterFieldState);
       }
     });
   };
 
+  var markAllFieldsTouched = function markAllFieldsTouched() {
+    Object.keys(state.fields).forEach(function (key) {
+      state.fields[key].touched = true;
+    });
+  };
+
   var hasSyncErrors = function hasSyncErrors() {
-    return !!(state.formState.error || Object.keys(state.formState.errors).length);
+    return !!(state.formState.error || hasAnyError(state.formState.errors));
   };
 
   var calculateNextFormState = function calculateNextFormState() {
     var fields = state.fields,
         formState = state.formState,
         lastFormState = state.lastFormState;
+    var fieldKeys = Object.keys(fields); // calculate dirty/pristine
 
-    var fieldKeys = Object.keys(fields);
-
-    // calculate dirty/pristine
     formState.pristine = fieldKeys.every(function (key) {
       return fields[key].isEqual(getIn(formState.values, key), getIn(formState.initialValues || {}, key));
     });
     formState.dirtySinceLastSubmit = !!(formState.lastSubmittedValues && !fieldKeys.every(function (key) {
-      return fields[key].isEqual(getIn(formState.values, key), getIn(formState.lastSubmittedValues || {}, key) // || {} is for flow, but causes branch coverage complaint
+      return fields[key].isEqual(getIn(formState.values, key), // istanbul ignore next
+      getIn(formState.lastSubmittedValues || {}, key) // || {} is for flow, but causes branch coverage complaint
       );
     }));
-
-    formState.valid = !formState.error && !formState.submitError && !Object.keys(formState.errors).length && !(formState.submitErrors && Object.keys(formState.submitErrors).length);
+    formState.valid = !formState.error && !formState.submitError && !hasAnyError(formState.errors) && !(formState.submitErrors && hasAnyError(formState.submitErrors));
     var nextFormState = convertToExternalFormState(formState);
 
     var _fieldKeys$reduce = fieldKeys.reduce(function (result, key) {
       result.touched[key] = fields[key].touched;
       result.visited[key] = fields[key].visited;
       return result;
-    }, { touched: {}, visited: {} }),
+    }, {
+      touched: {},
+      visited: {}
+    }),
         touched = _fieldKeys$reduce.touched,
         visited = _fieldKeys$reduce.visited;
 
@@ -702,32 +769,35 @@ var createForm = function createForm(config) {
 
   var notifying = false;
   var scheduleNotification = false;
+
   var notifyFormListeners = function notifyFormListeners() {
     if (notifying) {
       scheduleNotification = true;
     } else {
       notifying = true;
       callDebug();
-      if (!inBatch) {
-        var lastFormState = state.lastFormState;
 
+      if (!inBatch && !validationPaused) {
+        var lastFormState = state.lastFormState;
         var nextFormState = calculateNextFormState();
+
         if (nextFormState !== lastFormState) {
           state.lastFormState = nextFormState;
           notify(state.subscribers, nextFormState, lastFormState, filterFormState);
         }
       }
+
       notifying = false;
+
       if (scheduleNotification) {
         scheduleNotification = false;
         notifyFormListeners();
       }
     }
-  };
+  }; // generate initial errors
 
-  // generate initial errors
+
   runValidation();
-
   var api = {
     batch: function batch(fn) {
       inBatch = true;
@@ -736,19 +806,19 @@ var createForm = function createForm(config) {
       notifyFieldListeners();
       notifyFormListeners();
     },
-
     blur: function blur(name) {
       var fields = state.fields,
           formState = state.formState;
-
       var previous = fields[name];
+
       if (previous) {
         // can only blur registered fields
         delete formState.active;
-        fields[name] = _extends({}, previous, {
+        fields[name] = _objectSpread({}, previous, {
           active: false,
           touched: true
         });
+
         if (validateOnBlur) {
           runValidation(name, function () {
             notifyFieldListeners();
@@ -760,15 +830,14 @@ var createForm = function createForm(config) {
         }
       }
     },
-
     change: function change(name, value) {
-      var fields = state.fields,
-          formState = state.formState;
+      var formState = state.formState;
 
-      if (fields[name] && getIn(formState.values, name) !== value) {
+      if (getIn(formState.values, name) !== value) {
         changeValue(state, name, function () {
           return value;
         });
+
         if (validateOnBlur) {
           notifyFieldListeners();
           notifyFormListeners();
@@ -780,9 +849,9 @@ var createForm = function createForm(config) {
         }
       }
     },
-
     focus: function focus(name) {
       var field = state.fields[name];
+
       if (field && !field.active) {
         state.formState.active = name;
         field.active = true;
@@ -791,53 +860,65 @@ var createForm = function createForm(config) {
         notifyFormListeners();
       }
     },
-
     mutators: mutatorsApi,
-
     getFieldState: function getFieldState(name) {
       var field = state.fields[name];
       return field && field.lastFieldState;
     },
-
     getRegisteredFields: function getRegisteredFields() {
       return Object.keys(state.fields);
     },
-
     getState: function getState() {
       return convertToExternalFormState(state.formState);
     },
-
     initialize: function initialize(values) {
       var fields = state.fields,
           formState = state.formState;
 
-      formState.initialValues = values;
-      formState.values = values;
+      if (!keepDirtyOnReinitialize) {
+        formState.values = values;
+      }
+
       Object.keys(fields).forEach(function (key) {
         var field = fields[key];
         field.touched = false;
         field.visited = false;
+
+        if (keepDirtyOnReinitialize) {
+          var pristine = fields[key].isEqual(getIn(formState.values, key), getIn(formState.initialValues || {}, key));
+
+          if (pristine) {
+            // only update pristine values
+            formState.values = setIn(formState.values, key, getIn(values, key));
+          }
+        }
       });
+      formState.initialValues = values;
       runValidation(undefined, function () {
         notifyFieldListeners();
         notifyFormListeners();
       });
     },
-
+    isValidationPaused: function isValidationPaused() {
+      return validationPaused;
+    },
     pauseValidation: function pauseValidation() {
       validationPaused = true;
     },
-
-    registerField: function registerField(name, subscriber) {
-      var subscription = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-      var fieldConfig = arguments[3];
+    registerField: function registerField(name, subscriber, subscription, fieldConfig) {
+      if (subscription === void 0) {
+        subscription = {};
+      }
 
       if (!state.fieldSubscribers[name]) {
-        state.fieldSubscribers[name] = { index: 0, entries: {} };
+        state.fieldSubscribers[name] = {
+          index: 0,
+          entries: {}
+        };
       }
-      var index = state.fieldSubscribers[name].index++;
 
-      // save field subscriber callback
+      var index = state.fieldSubscribers[name].index++; // save field subscriber callback
+
       state.fieldSubscribers[name].entries[index] = {
         subscriber: memoize(subscriber),
         subscription: subscription
@@ -869,11 +950,13 @@ var createForm = function createForm(config) {
           visited: false
         };
       }
+
       if (fieldConfig && fieldConfig.getValidator) {
         state.fields[name].validators[index] = fieldConfig.getValidator;
       }
 
       var sentFirstNotification = false;
+
       var firstNotification = function firstNotification() {
         var fieldState = publishFieldState(state.formState, state.fields[name]);
         notifySubscriber(subscriber, subscription, fieldState, undefined, filterFieldState, true);
@@ -883,36 +966,48 @@ var createForm = function createForm(config) {
 
       runValidation(undefined, function () {
         notifyFormListeners();
+
         if (!sentFirstNotification) {
           firstNotification();
         }
+
         notifyFieldListeners();
       });
-
       return function () {
         delete state.fields[name].validators[index];
         delete state.fieldSubscribers[name].entries[index];
+
         if (!Object.keys(state.fieldSubscribers[name].entries).length) {
           delete state.fieldSubscribers[name];
           delete state.fields[name];
+          state.formState.errors = setIn(state.formState.errors, name, undefined) || {};
+
+          if (destroyOnUnregister) {
+            state.formState.values = setIn(state.formState.values, name, undefined) || {};
+          }
         }
+
         runValidation(undefined, function () {
           notifyFieldListeners();
           notifyFormListeners();
         });
       };
     },
+    reset: function reset(initialValues) {
+      if (initialValues === void 0) {
+        initialValues = state.formState.initialValues;
+      }
 
-    reset: function reset() {
       state.formState.submitFailed = false;
       state.formState.submitSucceeded = false;
+      delete state.formState.submitError;
       delete state.formState.submitErrors;
       delete state.formState.lastSubmittedValues;
-      api.initialize(state.formState.initialValues || {});
+      api.initialize(initialValues || {});
     },
-
     resumeValidation: function resumeValidation() {
       validationPaused = false;
+
       if (validationBlocked) {
         // validation was attempted while it was paused, so run it now
         runValidation(undefined, function () {
@@ -920,19 +1015,30 @@ var createForm = function createForm(config) {
           notifyFormListeners();
         });
       }
+
       validationBlocked = false;
     },
-
     setConfig: function setConfig(name, value) {
       switch (name) {
         case 'debug':
           debug = value;
           break;
+
+        case 'destroyOnUnregister':
+          destroyOnUnregister = value;
+          break;
+
         case 'initialValues':
           api.initialize(value);
           break;
+
+        case 'keepDirtyOnReinitialize':
+          keepDirtyOnReinitialize = value;
+          break;
+
         case 'mutators':
           mutators = value;
+
           if (value) {
             Object.keys(mutatorsApi).forEach(function (key) {
               if (!(key in value)) {
@@ -947,10 +1053,13 @@ var createForm = function createForm(config) {
               delete mutatorsApi[key];
             });
           }
+
           break;
+
         case 'onSubmit':
           onSubmit = value;
           break;
+
         case 'validate':
           validate = value;
           runValidation(undefined, function () {
@@ -958,29 +1067,28 @@ var createForm = function createForm(config) {
             notifyFormListeners();
           });
           break;
+
         case 'validateOnBlur':
           validateOnBlur = value;
           break;
+
         default:
           throw new Error('Unrecognised option ' + name);
       }
     },
-
     submit: function submit() {
-      var formState = state.formState,
-          fields = state.fields;
+      var formState = state.formState;
 
       if (hasSyncErrors() && !persistentSubmitErrors) {
-        // mark all fields as touched
-        Object.keys(fields).forEach(function (key) {
-          fields[key].touched = true;
-        });
+        markAllFieldsTouched();
         state.formState.submitFailed = true;
         notifyFormListeners();
         notifyFieldListeners();
         return; // no submit for you!!
       }
+
       var asyncValidationPromisesKeys = Object.keys(asyncValidationPromises);
+
       if (asyncValidationPromisesKeys.length) {
         // still waiting on async validation to complete...
         Promise.all(asyncValidationPromisesKeys.reduce(function (result, key) {
@@ -992,38 +1100,49 @@ var createForm = function createForm(config) {
         return;
       }
 
-      var resolvePromise = void 0;
+      var resolvePromise;
       var completeCalled = false;
+
       var complete = function complete(errors) {
         formState.submitting = false;
-        if (errors && (Object.keys(errors).length || Object.getOwnPropertySymbols(errors).length)) {
+
+        if (errors && hasAnyError(errors)) {
           formState.submitFailed = true;
           formState.submitSucceeded = false;
           formState.submitErrors = errors;
           formState.submitError = errors[FORM_ERROR];
+          markAllFieldsTouched();
         } else {
           delete formState.submitErrors;
           delete formState.submitError;
           formState.submitFailed = false;
           formState.submitSucceeded = true;
         }
+
         notifyFormListeners();
         notifyFieldListeners();
         completeCalled = true;
+
         if (resolvePromise) {
-          resolvePromise();
+          resolvePromise(errors);
         }
+
+        return errors;
       };
+
       formState.submitting = true;
       formState.submitFailed = false;
       formState.submitSucceeded = false;
-      formState.lastSubmittedValues = _extends({}, formState.values);
+      formState.lastSubmittedValues = _objectSpread({}, formState.values);
+
       if (onSubmit.length === 3) {
         // onSubmit is expecting a callback, first try synchronously
         onSubmit(formState.values, api, complete);
+
         if (!completeCalled) {
           // must be async, so we should return a Promise
           notifyFormListeners(); // let everyone know we are submitting
+
           return new Promise(function (resolve) {
             resolvePromise = resolve;
           });
@@ -1031,9 +1150,11 @@ var createForm = function createForm(config) {
       } else {
         // onSubmit is either sync or async with a Promise
         var result = onSubmit(formState.values, api);
+
         if (result && isPromise(result)) {
           // onSubmit is async with a Promise
           notifyFormListeners(); // let everyone know we are submitting
+
           return result.then(complete);
         } else {
           // onSubmit is sync
@@ -1041,27 +1162,29 @@ var createForm = function createForm(config) {
         }
       }
     },
-
     subscribe: function subscribe(subscriber, subscription) {
       if (!subscriber) {
         throw new Error('No callback given.');
       }
+
       if (!subscription) {
         throw new Error('No subscription provided. What values do you want to listen to?');
       }
+
       var memoized = memoize(subscriber);
       var subscribers = state.subscribers,
           lastFormState = state.lastFormState;
-
       var index = subscribers.index++;
       subscribers.entries[index] = {
         subscriber: memoized,
         subscription: subscription
       };
       var nextFormState = calculateNextFormState();
+
       if (nextFormState !== lastFormState) {
         state.lastFormState = nextFormState;
       }
+
       notifySubscriber(memoized, subscription, nextFormState, nextFormState, filterFormState, true);
       return function () {
         delete subscribers.entries[index];
@@ -1074,6 +1197,7 @@ var createForm = function createForm(config) {
 //
 
 exports.createForm = createForm;
+exports.configOptions = configOptions;
 exports.version = version;
 exports.ARRAY_ERROR = ARRAY_ERROR;
 exports.FORM_ERROR = FORM_ERROR;
