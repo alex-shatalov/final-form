@@ -55,7 +55,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to active', () => {
-    const { foo: { blur, focus, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { blur, focus, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { active: true }
@@ -90,7 +92,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to dirty', () => {
-    const { foo: { change, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { change, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { dirty: true }
@@ -120,7 +124,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to error with whole-record validation', () => {
-    const { foo: { change, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { change, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { error: true }
@@ -160,7 +166,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to error with field-level validation', () => {
-    const { foo: { change, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { change, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { error: true }
@@ -193,7 +201,10 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to initial', () => {
-    const { form, foo: { spy } } = prepareFieldSubscribers(
+    const {
+      form,
+      foo: { spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { initial: true }
@@ -223,7 +234,10 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow reseting even if never initialized', () => {
-    const { form, foo: { spy } } = prepareFieldSubscribers(
+    const {
+      form,
+      foo: { spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { initial: true }
@@ -248,8 +262,39 @@ describe('Field.subscribing', () => {
     expect(spy.mock.calls[1][0].initial).toBe('baz')
   })
 
+  it('should allow reseting with specific initial new values', () => {
+    const {
+      form,
+      foo: { spy }
+    } = prepareFieldSubscribers(
+      {},
+      {
+        foo: { initial: true }
+      },
+      {},
+      {}
+    )
+
+    // should initialize with initial value
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy.mock.calls[0][0].initial).toBeUndefined()
+
+    form.reset()
+
+    // same initial value, duh
+    expect(spy).toHaveBeenCalledTimes(1)
+
+    form.reset({ foo: 'baz' })
+
+    // new initial value
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect(spy.mock.calls[1][0].initial).toBe('baz')
+  })
+
   it('should allow subscribing to invalid with whole-record validation', () => {
-    const { foo: { change, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { change, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { invalid: true }
@@ -289,7 +334,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to invalid with field-level validation', () => {
-    const { foo: { change, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { change, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { invalid: true }
@@ -322,7 +369,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to length', () => {
-    const { foo: { change, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { change, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { length: true }
@@ -346,7 +395,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to pristine', () => {
-    const { foo: { change, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { change, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { pristine: true }
@@ -376,7 +427,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to touched', () => {
-    const { foo: { blur, focus, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { blur, focus, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { touched: true }
@@ -407,7 +460,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow field to be marked touched even if it was not active', () => {
-    const { foo: { blur, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { blur, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { touched: true }
@@ -426,7 +481,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to valid with whole-record validation', () => {
-    const { foo: { change, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { change, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { valid: true }
@@ -466,7 +523,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to valid with field-level validation', () => {
-    const { foo: { change, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { change, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { valid: true }
@@ -499,7 +558,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to value', () => {
-    const { foo: { change, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { change, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { value: true }
@@ -529,7 +590,9 @@ describe('Field.subscribing', () => {
   })
 
   it('should allow subscribing to visited', () => {
-    const { foo: { blur, focus, spy } } = prepareFieldSubscribers(
+    const {
+      foo: { blur, focus, spy }
+    } = prepareFieldSubscribers(
       {},
       {
         foo: { visited: true }
@@ -601,5 +664,69 @@ describe('Field.subscribing', () => {
     expect(field).toHaveBeenCalledTimes(3)
     expect(field.mock.calls[2][0].pristine).toBe(true)
     expect(field.mock.calls[2][0].dirty).toBe(false)
+  })
+
+  it('should not destroy field value on unregister by default', () => {
+    const form = createForm({ onSubmit: onSubmitMock })
+    const spy = jest.fn()
+    form.subscribe(spy, { values: true })
+    const field = jest.fn()
+    const unregister = form.registerField('foo', field, { value: true })
+
+    // no values yet
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy.mock.calls[0][0].values).toEqual({})
+    expect(field).toHaveBeenCalledTimes(1)
+    expect(field.mock.calls[0][0].value).toBeUndefined()
+
+    // change value
+    form.change('foo', 'bar')
+
+    // value changed
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect(spy.mock.calls[1][0].values).toEqual({ foo: 'bar' })
+    expect(field).toHaveBeenCalledTimes(2)
+    expect(field.mock.calls[1][0].value).toBe('bar')
+
+    // unregister should not remove value
+    unregister()
+
+    // no need to notify form or field
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect(field).toHaveBeenCalledTimes(2)
+  })
+
+  it('should destroy field value on unregister when destroyOnUnregister is true', () => {
+    const form = createForm({
+      onSubmit: onSubmitMock,
+      destroyOnUnregister: true
+    })
+    const spy = jest.fn()
+    form.subscribe(spy, { values: true })
+    const field = jest.fn()
+    const unregister = form.registerField('foo', field, { value: true })
+
+    // no values yet
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy.mock.calls[0][0].values).toEqual({})
+    expect(field).toHaveBeenCalledTimes(1)
+    expect(field.mock.calls[0][0].value).toBeUndefined()
+
+    // change value
+    form.change('foo', 'bar')
+
+    // value changed
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect(spy.mock.calls[1][0].values).toEqual({ foo: 'bar' })
+    expect(field).toHaveBeenCalledTimes(2)
+    expect(field.mock.calls[1][0].value).toBe('bar')
+
+    // unregister should not remove value
+    unregister()
+
+    // form notified of change of values
+    expect(spy).toHaveBeenCalledTimes(3)
+    expect(spy.mock.calls[2][0].values).toEqual({})
+    expect(field).toHaveBeenCalledTimes(2)
   })
 })

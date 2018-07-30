@@ -6,8 +6,8 @@
 
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-* [Why does 🏁 Final Form set my `''` field value to `undefined`?](#why-does--final-form-set-my--field-value-to-undefined)
-* [IE and React Native don't understand `Symbol` and `for...of`](#ie-and-react-native-dont-understand-symbol-and-forof)
+- [Why does 🏁 Final Form set my `''` field value to `undefined`?](#why-does--final-form-set-my--field-value-to-undefined)
+- [Why do my numeric keys result in an array structure?](#why-do-my-numeric-keys-result-in-an-array-structure)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -57,11 +57,6 @@ if (!values.myField) {
 }
 ```
 
-## IE and React Native don't understand `Symbol` and `for...of`
+## Why do my numeric keys result in an array structure?
 
-You will need to install polyfills for those.
-
-```js
-import 'core-js/es6/symbol'
-import 'core-js/fn/symbol/iterator'
-```
+The field name parsing code in 🏁 Final Form was modeled after Lodash's [`_.set()`](https://lodash.com/docs/#set). Writing a parser that detects that `foo.0.bar` is different from `foo[0].bar` is _extremely_ complicated. [Read more about field names](https://github.com/final-form/final-form#field-names).

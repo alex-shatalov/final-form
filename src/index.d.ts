@@ -10,6 +10,8 @@ export interface FormSubscription {
   dirtySinceLastSubmit?: boolean
   error?: boolean
   errors?: boolean
+  hasSubmitErrors?: boolean
+  hasValidationErrors?: boolean
   initialValues?: boolean
   invalid?: boolean
   pristine?: boolean
@@ -18,9 +20,11 @@ export interface FormSubscription {
   submitFailed?: boolean
   submitting?: boolean
   submitSucceeded?: boolean
+  touched?: boolean
   valid?: boolean
   validating?: boolean
   values?: boolean
+  visited?: boolean
 }
 
 export interface FormState {
@@ -30,6 +34,8 @@ export interface FormState {
   dirtySinceLastSubmit: boolean
   error: any
   errors: AnyObject
+  hasSubmitErrors: boolean
+  hasValidationErrors: boolean
   initialValues: AnyObject
   invalid: boolean
   pristine: boolean
@@ -38,9 +44,11 @@ export interface FormState {
   submitFailed: boolean
   submitSucceeded: boolean
   submitting: boolean
+  touched?: { [key: string]: boolean }
   valid: boolean
   validating: boolean
   values: AnyObject
+  visited?: { [key: string]: boolean }
 }
 
 export type FormSubscriber = Subscriber<FormState>
@@ -49,7 +57,7 @@ export interface FieldState {
   active?: boolean
   blur: () => void
   change: (value: any) => void
-  data?: object
+  data?: AnyObject
   dirty?: boolean
   dirtySinceLastSubmit?: boolean
   error?: any
@@ -104,22 +112,19 @@ export type RegisterField = (
   name: string,
   subscriber: FieldSubscriber,
   subscription: FieldSubscription,
-  config: FieldConfig
+  config?: FieldConfig
 ) => Unsubscribe
 
 export interface InternalFieldState {
   active: boolean
   blur: () => void
   change: (value: any) => void
-  data: object
-  error?: any
+  data: AnyObject
   focus: () => void
   isEqual: IsEqual
   lastFieldState?: FieldState
   length?: any
   name: string
-  submitError?: any
-  pristine: boolean
   touched: boolean
   validateFields?: string[]
   validators: {
@@ -147,24 +152,37 @@ export interface InternalFormState {
   values: object
 }
 
+type ConfigKey =
+  | 'debug'
+  | 'destroyOnUnregister'
+  | 'initialValues'
+  | 'keepDirtyOnReinitialize'
+  | 'mutators'
+  | 'onSubmit'
+  | 'validate'
+  | 'validateOnBlur'
+
 export interface FormApi {
   batch: (fn: () => void) => void
   blur: (name: string) => void
   change: (name: string, value?: any) => void
   focus: (name: string) => void
   initialize: (values: object) => void
+  isValidationPaused: () => boolean
   getFieldState: (field: string) => FieldState | undefined
   getRegisteredFields: () => string[]
   getState: () => FormState
-  mutators: { [key: string]: Function }
-  setConfig: (name: string, value: any) => void
+  mutators: { [key: string]: (...args: any[]) => any }
+  pauseValidation: () => void
+  registerField: RegisterField
+  reset: (initialValues?: object) => void
+  resumeValidation: () => void
+  setConfig: (name: ConfigKey, value: any) => void
   submit: () => Promise<object | undefined> | undefined
   subscribe: (
     subscriber: FormSubscriber,
     subscription: FormSubscription
   ) => Unsubscribe
-  registerField: RegisterField
-  reset: () => void
 }
 
 export type DebugFunction = (
@@ -193,11 +211,13 @@ export interface Tools {
   shallowEqual: IsEqual
 }
 
-export type Mutator = (args: any[], state: MutableState, tools: Tools) => any
+export type Mutator = (args: any, state: MutableState, tools: Tools) => any
 
 export interface Config {
   debug?: DebugFunction
+  destroyOnUnregister?: boolean
   initialValues?: object
+  keepDirtyOnReinitialize?: boolean
   mutators?: { [key: string]: Mutator }
   onSubmit: (
     values: object,
@@ -214,8 +234,9 @@ export type Decorator = (form: FormApi) => Unsubscribe
 export function createForm(config: Config): FormApi
 export const fieldSubscriptionItems: string[]
 export const formSubscriptionItems: string[]
-export const ARRAY_ERROR: any
-export const FORM_ERROR: any
+export const ARRAY_ERROR: string
+export const FORM_ERROR: string
 export function getIn(state: object, complexKey: string): any
 export function setIn(state: object, key: string, value: any): object
 export const version: string
+export const configOptions: ConfigKey[]

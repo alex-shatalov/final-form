@@ -14,7 +14,7 @@
 
 ✅ Opt-in subscriptions - only update on the state you need!
 
-✅ 💥 [**3.9k gzipped**](https://bundlephobia.com/result?p=final-form) 💥
+✅ 💥 [**4.2k gzipped**](https://bundlephobia.com/result?p=final-form) 💥
 
 ---
 
@@ -97,176 +97,187 @@ form.submit() // only submits if all validation passes
 
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-* [Examples](#examples)
-  * [Simple React Example](#simple-react-example)
-* [Official Mutators](#official-mutators)
-  * [🏁 Final Form Arrays](#-final-form-arrays)
-  * [🏁 Final Form Set Field Data](#-final-form-set-field-data)
-  * [🏁 Final Form Set Field Touched](#-final-form-set-field-touched)
-* [Libraries](#libraries)
-  * [🏁 React Final Form](#-react-final-form)
-  * [Vue Final Form](#vue-final-form)
-  * [Define Form and React Define Form](#define-form-and-react-define-form)
-* [Polyfills](#polyfills)
-* [API](#api)
-  * [`createForm: (config: Config) => FormApi`](#createform-config-config--formapi)
-  * [`fieldSubscriptionItems: string[]`](#fieldsubscriptionitems-string)
-  * [`formSubscriptionItems: string[]`](#formsubscriptionitems-string)
-  * [`FORM_ERROR: Symbol`](#form_error-symbol)
-  * [`getIn(state: Object, complexKey: string): any`](#getinstate-object-complexkey-string-any)
-  * [`setIn(state: Object, key: string, value: any): Object`](#setinstate-object-key-string-value-any-object)
-  * [`version: string`](#version-string)
-* [Types](#types)
-  * [`Config`](#config)
-    * [`debug?: DebugFunction`](#debug-debugfunction)
-    * [`initialValues?: Object`](#initialvalues-object)
-    * [`mutators?: { [string]: Mutator }`](#mutators--string-mutator-)
-    * [`onSubmit: (values: Object, form: FormApi, callback: ?(errors: ?Object) => void) => ?Object | Promise<?Object> | void`](#onsubmit-values-object-form-formapi-callback-errors-object--void--object--promiseobject--void)
-    * [`validate?: (values: Object) => Object | Promise<Object>`](#validate-values-object--object--promiseobject)
-    * [`validateOnBlur?: boolean`](#validateonblur-boolean)
-  * [`DebugFunction: (state: FormState, fieldStates: { [string]: FieldState }) => void`](#debugfunction-state-formstate-fieldstates--string-fieldstate---void)
-  * [`Decorator: (form: FormApi) => Unsubscribe`](#decorator-form-formapi--unsubscribe)
-  * [`FieldConfig`](#fieldconfig)
-    * [`isEqual?: (a: any, b: any) => boolean`](#isequal-a-any-b-any--boolean)
-    * [`getValidator?: () => (value: ?any, allValues: Object) => ?any | ?Promise<any>`](#getvalidator---value-any-allvalues-object--any--promiseany)
-    * [`validateFields?: string[]`](#validatefields-string)
-  * [`FieldState`](#fieldstate)
-    * [`active?: boolean`](#active-boolean)
-    * [`blur: () => void`](#blur---void)
-    * [`change: (value: any) => void`](#change-value-any--void)
-    * [`data?: Object`](#data-object)
-    * [`dirty?: boolean`](#dirty-boolean)
-    * [`dirtySinceLastSubmit?: boolean`](#dirtysincelastsubmit-boolean)
-    * [`error?: any`](#error-any)
-    * [`focus: () => void`](#focus---void)
-    * [`initial?: any`](#initial-any)
-    * [`invalid?: boolean`](#invalid-boolean)
-    * [`length?: number`](#length-number)
-    * [`name: string`](#name-string)
-    * [`pristine?: boolean`](#pristine-boolean)
-    * [`submitError?: any`](#submiterror-any)
-    * [`submitFailed?: boolean`](#submitfailed-boolean)
-    * [`submitSucceeded?: boolean`](#submitsucceeded-boolean)
-    * [`touched?: boolean`](#touched-boolean)
-    * [`valid?: boolean`](#valid-boolean)
-    * [`value?: any`](#value-any)
-    * [`visited?: boolean`](#visited-boolean)
-  * [`FieldSubscriber: (state: FieldState) => void`](#fieldsubscriber-state-fieldstate--void)
-  * [`FieldSubscription: { [string]: boolean }`](#fieldsubscription--string-boolean-)
-    * [`active?: boolean`](#active-boolean-1)
-    * [`data?: boolean`](#data-boolean)
-    * [`dirty?: boolean`](#dirty-boolean-1)
-    * [`dirtySinceLastSubmit?: boolean`](#dirtysincelastsubmit-boolean-1)
-    * [`error?: boolean`](#error-boolean)
-    * [`initial?: boolean`](#initial-boolean)
-    * [`invalid?: boolean`](#invalid-boolean-1)
-    * [`length?: boolean`](#length-boolean)
-    * [`pristine?: boolean`](#pristine-boolean-1)
-    * [`submitError?: boolean`](#submiterror-boolean)
-    * [`submitFailed?: boolean`](#submitfailed-boolean-1)
-    * [`submitSucceeded?: boolean`](#submitsucceeded-boolean-1)
-    * [`touched?: boolean`](#touched-boolean-1)
-    * [`valid?: boolean`](#valid-boolean-1)
-    * [`value?: boolean`](#value-boolean)
-    * [`visited?: boolean`](#visited-boolean-1)
-  * [`FormApi`](#formapi)
-    * [`batch: (fn: () => void) => void)`](#batch-fn---void--void)
-    * [`blur: (name: string) => void`](#blur-name-string--void)
-    * [`change: (name: string, value: ?any) => void`](#change-name-string-value-any--void)
-    * [`focus: (name: string) => void`](#focus-name-string--void)
-    * [`getFormState: (field: string) => FieldState`](#getformstate-field-string--fieldstate)
-    * [`getRegisteredFields: () => string[]`](#getregisteredfields---string)
-    * [`getState: () => FormState`](#getstate---formstate)
-    * [`initialize: (values: Object) => void`](#initialize-values-object--void)
-    * [`mutators: ?{ [string]: Function }`](#mutators--string-function-)
-    * [`pauseValidation: () => void`](#pausevalidation---void)
-    * [`registerField: RegisterField`](#registerfield-registerfield)
-    * [`reset: () => void`](#reset---void)
-    * [`resumeValidation: () => void`](#resumevalidation---void)
-    * [`submit: () => ?Promise<?Object>`](#submit---promiseobject)
-    * [`subscribe: (subscriber: FormSubscriber, subscription: FormSubscription) => Unsubscribe`](#subscribe-subscriber-formsubscriber-subscription-formsubscription--unsubscribe)
-  * [`FormState`](#formstate)
-    * [`active?: string`](#active-string)
-    * [`dirty?: boolean`](#dirty-boolean-2)
-    * [`error?: any`](#error-any-1)
-    * [`errors?: Object`](#errors-object)
-    * [`initialValues?: Object`](#initialvalues-object-1)
-    * [`invalid?: boolean`](#invalid-boolean-2)
-    * [`pristine?: boolean`](#pristine-boolean-2)
-    * [`submitError?: any`](#submiterror-any-1)
-    * [`submitErrors?: Object`](#submiterrors-object)
-    * [`submitFailed?: boolean`](#submitfailed-boolean-2)
-    * [`submitSucceeded?: boolean`](#submitsucceeded-boolean-2)
-    * [`submitting?: boolean`](#submitting-boolean)
-    * [`touched: { [string]: boolean }`](#touched--string-boolean-)
-    * [`valid?: boolean`](#valid-boolean-2)
-    * [`validating?: boolean`](#validating-boolean)
-    * [`values?: Object`](#values-object)
-    * [`visited: { [string]: boolean }`](#visited--string-boolean-)
-  * [`FormSubscriber: (state: FormState) => void`](#formsubscriber-state-formstate--void)
-  * [`FormSubscription: { [string]: boolean }`](#formsubscription--string-boolean-)
-    * [`active?: boolean`](#active-boolean-2)
-    * [`dirty?: boolean`](#dirty-boolean-3)
-    * [`dirtySinceLastSubmit?: boolean`](#dirtysincelastsubmit-boolean-2)
-    * [`error?: boolean`](#error-boolean-1)
-    * [`errors?: boolean`](#errors-boolean)
-    * [`initialValues?: boolean`](#initialvalues-boolean)
-    * [`invalid?: boolean`](#invalid-boolean-3)
-    * [`pristine?: boolean`](#pristine-boolean-3)
-    * [`setConfig: (name: string, value: any) => void`](#setconfig-name-string-value-any--void)
-    * [`submitError?: boolean`](#submiterror-boolean-1)
-    * [`submitErrors?: boolean`](#submiterrors-boolean)
-    * [`submitFailed?: boolean`](#submitfailed-boolean-3)
-    * [`submitSucceeded?: boolean`](#submitsucceeded-boolean-3)
-    * [`submitting?: boolean`](#submitting-boolean-1)
-    * [`touched?: boolean`](#touched-boolean-2)
-    * [`valid?: boolean`](#valid-boolean-3)
-    * [`validating?: boolean`](#validating-boolean-1)
-    * [`values?: boolean`](#values-boolean)
-    * [`visited?: boolean`](#visited-boolean-2)
-  * [`InternalFieldState`](#internalfieldstate)
-    * [`active: boolean`](#active-boolean)
-    * [`blur: () => void`](#blur---void-1)
-    * [`change: (value: any) => void`](#change-value-any--void-1)
-    * [`data: Object`](#data-object)
-    * [`focus: () => void`](#focus---void-1)
-    * [`isEqual: (a: any, b: any) => boolean`](#isequal-a-any-b-any--boolean)
-    * [`name: string`](#name-string-1)
-    * [`touched: boolean`](#touched-boolean)
-    * [`validateFields: ?(string[])`](#validatefields-string)
-    * [`validators: { [number]: (value: ?any, allValues: Object) => ?any | Promise<?any> } }`](#validators--number-value-any-allvalues-object--any--promiseany--)
-    * [`valid: boolean`](#valid-boolean)
-    * [`visited: boolean`](#visited-boolean)
-  * [`InternalFormState`](#internalformstate)
-    * [`active?: string`](#active-string-1)
-    * [`dirtySinceLastSubmit: boolean`](#dirtysincelastsubmit-boolean)
-    * [`error?: any`](#error-any-2)
-    * [`errors: Object`](#errors-object)
-    * [`initialValues?: Object`](#initialvalues-object-2)
-    * [`lastSubmittedValues?: Object`](#lastsubmittedvalues-object)
-    * [`pristine: boolean`](#pristine-boolean)
-    * [`submitError: any`](#submiterror-any)
-    * [`submitErrors?: Object`](#submiterrors-object-1)
-    * [`submitFailed: boolean`](#submitfailed-boolean)
-    * [`submitSucceeded: boolean`](#submitsucceeded-boolean)
-    * [`submitting: boolean`](#submitting-boolean)
-    * [`valid: boolean`](#valid-boolean-1)
-    * [`validating: number`](#validating-number)
-    * [`values: Object`](#values-object)
-  * [`MutableState`](#mutablestate)
-    * [`formState: InternalFormState`](#formstate-internalformstate)
-    * [`fields: { [string]: InternalFieldState }`](#fields--string-internalfieldstate-)
-  * [`Mutator: (args: any[], state: MutableState, tools: Tools) => any`](#mutator-args-any-state-mutablestate-tools-tools--any)
-  * [`RegisterField: (name: string, subscriber: FieldSubscriber, subscription: FieldSubscription, config?: FieldConfig) => Unsubscribe`](#registerfield-name-string-subscriber-fieldsubscriber-subscription-fieldsubscription-config-fieldconfig--unsubscribe)
-  * [`Tools`](#tools)
-    * [`Tools.changeValue: (state: MutableState, name: string, mutate: (value: any) => any) => void`](#toolschangevalue-state-mutablestate-name-string-mutate-value-any--any--void)
-    * [`Tools.getIn: (state: Object, complexKey: string) => any`](#toolsgetin-state-object-complexkey-string--any)
-    * [`Tools.setIn: (state: Object, key: string, value: any) => Object`](#toolssetin-state-object-key-string-value-any--object)
-    * [`Tools.shallowEqual: (a: any, b: any) => boolean`](#toolsshallowequal-a-any-b-any--boolean)
-  * [`Unsubscribe : () => void`](#unsubscribe----void)
-* [Contributors](#contributors)
-* [Backers](#backers)
-* [Sponsors](#sponsors)
+- [Examples](#examples)
+  - [Simple React Example](#simple-react-example)
+- [Official Mutators](#official-mutators)
+  - [🏁 Final Form Arrays](#-final-form-arrays)
+  - [🏁 Final Form Set Field Data](#-final-form-set-field-data)
+  - [🏁 Final Form Set Field Touched](#-final-form-set-field-touched)
+- [Libraries](#libraries)
+  - [🏁 React Final Form](#-react-final-form)
+  - [Vue Final Form](#vue-final-form)
+  - [Define Form and React Define Form](#define-form-and-react-define-form)
+  - [🏁 Final Form Focus 🧐](#-final-form-focus-)
+  - [🏁 React Final Form HTML5 Validation](#-react-final-form-html5-validation)
+  - [🏁 React Final Form Listeners](#-react-final-form-listeners)
+- [Field Names](#field-names)
+- [API](#api)
+  - [`createForm: (config: Config) => FormApi`](#createform-config-config--formapi)
+  - [`fieldSubscriptionItems: string[]`](#fieldsubscriptionitems-string)
+  - [`formSubscriptionItems: string[]`](#formsubscriptionitems-string)
+  - [`ARRAY_ERROR: string`](#array_error-string)
+  - [`FORM_ERROR: string`](#form_error-string)
+  - [`getIn(state: Object, complexKey: string): any`](#getinstate-object-complexkey-string-any)
+  - [`setIn(state: Object, key: string, value: any): Object`](#setinstate-object-key-string-value-any-object)
+  - [`version: string`](#version-string)
+- [Types](#types)
+  - [`Config`](#config)
+    - [`debug?: DebugFunction`](#debug-debugfunction)
+    - [`destroyOnUnregister?: boolean`](#destroyonunregister-boolean)
+    - [`keepDirtyOnReinitialize?: boolean`](#keepdirtyonreinitialize-boolean)
+    - [`initialValues?: Object`](#initialvalues-object)
+    - [`mutators?: { [string]: Mutator }`](#mutators--string-mutator-)
+    - [`onSubmit: (values: Object, form: FormApi, callback: ?(errors: ?Object) => void) => ?Object | Promise<?Object> | void`](#onsubmit-values-object-form-formapi-callback-errors-object--void--object--promiseobject--void)
+    - [`validate?: (values: Object) => Object | Promise<Object>`](#validate-values-object--object--promiseobject)
+    - [`validateOnBlur?: boolean`](#validateonblur-boolean)
+  - [`DebugFunction: (state: FormState, fieldStates: { [string]: FieldState }) => void`](#debugfunction-state-formstate-fieldstates--string-fieldstate---void)
+  - [`Decorator: (form: FormApi) => Unsubscribe`](#decorator-form-formapi--unsubscribe)
+  - [`FieldConfig`](#fieldconfig)
+    - [`isEqual?: (a: any, b: any) => boolean`](#isequal-a-any-b-any--boolean)
+    - [`getValidator?: () => (value: ?any, allValues: Object) => ?any | ?Promise<any>`](#getvalidator---value-any-allvalues-object--any--promiseany)
+    - [`validateFields?: string[]`](#validatefields-string)
+  - [`FieldState`](#fieldstate)
+    - [`active?: boolean`](#active-boolean)
+    - [`blur: () => void`](#blur---void)
+    - [`change: (value: any) => void`](#change-value-any--void)
+    - [`data?: Object`](#data-object)
+    - [`dirty?: boolean`](#dirty-boolean)
+    - [`dirtySinceLastSubmit?: boolean`](#dirtysincelastsubmit-boolean)
+    - [`error?: any`](#error-any)
+    - [`focus: () => void`](#focus---void)
+    - [`initial?: any`](#initial-any)
+    - [`invalid?: boolean`](#invalid-boolean)
+    - [`length?: number`](#length-number)
+    - [`name: string`](#name-string)
+    - [`pristine?: boolean`](#pristine-boolean)
+    - [`submitError?: any`](#submiterror-any)
+    - [`submitFailed?: boolean`](#submitfailed-boolean)
+    - [`submitSucceeded?: boolean`](#submitsucceeded-boolean)
+    - [`touched?: boolean`](#touched-boolean)
+    - [`valid?: boolean`](#valid-boolean)
+    - [`value?: any`](#value-any)
+    - [`visited?: boolean`](#visited-boolean)
+  - [`FieldSubscriber: (state: FieldState) => void`](#fieldsubscriber-state-fieldstate--void)
+  - [`FieldSubscription: { [string]: boolean }`](#fieldsubscription--string-boolean-)
+    - [`active?: boolean`](#active-boolean-1)
+    - [`data?: boolean`](#data-boolean)
+    - [`dirty?: boolean`](#dirty-boolean-1)
+    - [`dirtySinceLastSubmit?: boolean`](#dirtysincelastsubmit-boolean-1)
+    - [`error?: boolean`](#error-boolean)
+    - [`initial?: boolean`](#initial-boolean)
+    - [`invalid?: boolean`](#invalid-boolean-1)
+    - [`length?: boolean`](#length-boolean)
+    - [`pristine?: boolean`](#pristine-boolean-1)
+    - [`submitError?: boolean`](#submiterror-boolean)
+    - [`submitFailed?: boolean`](#submitfailed-boolean-1)
+    - [`submitSucceeded?: boolean`](#submitsucceeded-boolean-1)
+    - [`touched?: boolean`](#touched-boolean-1)
+    - [`valid?: boolean`](#valid-boolean-1)
+    - [`value?: boolean`](#value-boolean)
+    - [`visited?: boolean`](#visited-boolean-1)
+  - [`FormApi`](#formapi)
+    - [`batch: (fn: () => void) => void)`](#batch-fn---void--void)
+    - [`blur: (name: string) => void`](#blur-name-string--void)
+    - [`change: (name: string, value: ?any) => void`](#change-name-string-value-any--void)
+    - [`focus: (name: string) => void`](#focus-name-string--void)
+    - [`getFieldState: (field: string) => ?FieldState`](#getfieldstate-field-string--fieldstate)
+    - [`getRegisteredFields: () => string[]`](#getregisteredfields---string)
+    - [`getState: () => FormState`](#getstate---formstate)
+    - [`initialize: (values: Object) => void`](#initialize-values-object--void)
+    - [`isValidationPaused: () => boolean`](#isvalidationpaused---boolean)
+    - [`mutators: ?{ [string]: Function }`](#mutators--string-function-)
+    - [`pauseValidation: () => void`](#pausevalidation---void)
+    - [`registerField: RegisterField`](#registerfield-registerfield)
+    - [`reset: (initialValues: ?Object) => void`](#reset-initialvalues-object--void)
+    - [`resumeValidation: () => void`](#resumevalidation---void)
+    - [`submit: () => ?Promise<?Object>`](#submit---promiseobject)
+    - [`subscribe: (subscriber: FormSubscriber, subscription: FormSubscription) => Unsubscribe`](#subscribe-subscriber-formsubscriber-subscription-formsubscription--unsubscribe)
+  - [`FormState`](#formstate)
+    - [`active?: string`](#active-string)
+    - [`dirty?: boolean`](#dirty-boolean-2)
+    - [`error?: any`](#error-any-1)
+    - [`errors?: Object`](#errors-object)
+    - [`hasSubmitErrors?: boolean`](#hassubmiterrors-boolean)
+    - [`hasValidationErrors?: boolean`](#hasvalidationerrors-boolean)
+    - [`initialValues?: Object`](#initialvalues-object-1)
+    - [`invalid?: boolean`](#invalid-boolean-2)
+    - [`pristine?: boolean`](#pristine-boolean-2)
+    - [`submitError?: any`](#submiterror-any-1)
+    - [`submitErrors?: Object`](#submiterrors-object)
+    - [`submitFailed?: boolean`](#submitfailed-boolean-2)
+    - [`submitSucceeded?: boolean`](#submitsucceeded-boolean-2)
+    - [`submitting?: boolean`](#submitting-boolean)
+    - [`touched: { [string]: boolean }`](#touched--string-boolean-)
+    - [`valid?: boolean`](#valid-boolean-2)
+    - [`validating?: boolean`](#validating-boolean)
+    - [`values?: Object`](#values-object)
+    - [`visited: { [string]: boolean }`](#visited--string-boolean-)
+  - [`FormSubscriber: (state: FormState) => void`](#formsubscriber-state-formstate--void)
+  - [`FormSubscription: { [string]: boolean }`](#formsubscription--string-boolean-)
+    - [`active?: boolean`](#active-boolean-2)
+    - [`dirty?: boolean`](#dirty-boolean-3)
+    - [`dirtySinceLastSubmit?: boolean`](#dirtysincelastsubmit-boolean-2)
+    - [`error?: boolean`](#error-boolean-1)
+    - [`errors?: boolean`](#errors-boolean)
+    - [`hasSubmitErrors?: boolean`](#hassubmiterrors-boolean-1)
+    - [`hasValidationErrors?: boolean`](#hasvalidationerrors-boolean-1)
+    - [`initialValues?: boolean`](#initialvalues-boolean)
+    - [`invalid?: boolean`](#invalid-boolean-3)
+    - [`pristine?: boolean`](#pristine-boolean-3)
+    - [`setConfig: (name: string, value: any) => void`](#setconfig-name-string-value-any--void)
+    - [`submitError?: boolean`](#submiterror-boolean-1)
+    - [`submitErrors?: boolean`](#submiterrors-boolean)
+    - [`submitFailed?: boolean`](#submitfailed-boolean-3)
+    - [`submitSucceeded?: boolean`](#submitsucceeded-boolean-3)
+    - [`submitting?: boolean`](#submitting-boolean-1)
+    - [`touched?: boolean`](#touched-boolean-2)
+    - [`valid?: boolean`](#valid-boolean-3)
+    - [`validating?: boolean`](#validating-boolean-1)
+    - [`values?: boolean`](#values-boolean)
+    - [`visited?: boolean`](#visited-boolean-2)
+  - [`InternalFieldState`](#internalfieldstate)
+    - [`active: boolean`](#active-boolean)
+    - [`blur: () => void`](#blur---void-1)
+    - [`change: (value: any) => void`](#change-value-any--void-1)
+    - [`data: Object`](#data-object)
+    - [`focus: () => void`](#focus---void-1)
+    - [`isEqual: (a: any, b: any) => boolean`](#isequal-a-any-b-any--boolean)
+    - [`name: string`](#name-string-1)
+    - [`touched: boolean`](#touched-boolean)
+    - [`validateFields: ?(string[])`](#validatefields-string)
+    - [`validators: { [number]: (value: ?any, allValues: Object) => ?any | Promise<?any> } }`](#validators--number-value-any-allvalues-object--any--promiseany--)
+    - [`valid: boolean`](#valid-boolean)
+    - [`visited: boolean`](#visited-boolean)
+  - [`InternalFormState`](#internalformstate)
+    - [`active?: string`](#active-string-1)
+    - [`dirtySinceLastSubmit: boolean`](#dirtysincelastsubmit-boolean)
+    - [`error?: any`](#error-any-2)
+    - [`errors: Object`](#errors-object)
+    - [`initialValues?: Object`](#initialvalues-object-2)
+    - [`lastSubmittedValues?: Object`](#lastsubmittedvalues-object)
+    - [`pristine: boolean`](#pristine-boolean)
+    - [`submitError: any`](#submiterror-any)
+    - [`submitErrors?: Object`](#submiterrors-object-1)
+    - [`submitFailed: boolean`](#submitfailed-boolean)
+    - [`submitSucceeded: boolean`](#submitsucceeded-boolean)
+    - [`submitting: boolean`](#submitting-boolean)
+    - [`valid: boolean`](#valid-boolean-1)
+    - [`validating: number`](#validating-number)
+    - [`values: Object`](#values-object)
+  - [`MutableState`](#mutablestate)
+    - [`formState: InternalFormState`](#formstate-internalformstate)
+    - [`fields: { [string]: InternalFieldState }`](#fields--string-internalfieldstate-)
+  - [`Mutator: (args: any[], state: MutableState, tools: Tools) => any`](#mutator-args-any-state-mutablestate-tools-tools--any)
+  - [`RegisterField: (name: string, subscriber: FieldSubscriber, subscription: FieldSubscription, config?: FieldConfig) => Unsubscribe`](#registerfield-name-string-subscriber-fieldsubscriber-subscription-fieldsubscription-config-fieldconfig--unsubscribe)
+  - [`Tools`](#tools)
+    - [`Tools.changeValue: (state: MutableState, name: string, mutate: (value: any) => any) => void`](#toolschangevalue-state-mutablestate-name-string-mutate-value-any--any--void)
+    - [`Tools.getIn: (state: Object, complexKey: string) => any`](#toolsgetin-state-object-complexkey-string--any)
+    - [`Tools.setIn: (state: Object, key: string, value: any) => Object`](#toolssetin-state-object-key-string-value-any--object)
+    - [`Tools.shallowEqual: (a: any, b: any) => boolean`](#toolsshallowequal-a-any-b-any--boolean)
+  - [`Unsubscribe : () => void`](#unsubscribe----void)
+- [Contributors](#contributors)
+- [Backers](#backers)
+- [Sponsors](#sponsors)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -312,14 +323,42 @@ A form state management system for Vue that uses 🏁 Final Form under the hood.
 
 Define Form offers alternative typescript bindings for 🏁 Final Form. The key difference is that _the form data is now a strongly typed object_, rather than an `any`. This makes the `initialValues` config option required.
 
-## Polyfills
+### [🏁 Final Form Focus 🧐](https://github.com/final-form/final-form-focus)
 
-React Native and some versions of IE will require that you install two polyfills for 🏁 Final Form to work properly.
+A "decorator" that will attempt to apply focus to the first field with an error upon an attempted form submission.
 
-```js
-import 'core-js/es6/symbol'
-import 'core-js/fn/symbol/iterator'
-```
+### [🏁 React Final Form HTML5 Validation](https://github.com/final-form/react-final-form-html5-validation)
+
+A swap-in replacement for 🏁 React Final Form's `<Field>` component to provide HTML5 Validation.
+
+### [🏁 React Final Form Listeners](https://github.com/final-form/react-final-form-listeners)
+
+A collection of useful components for listening to fields in a 🏁 React Final Form.
+
+## Field Names
+
+Field names are strings that allow dot-and-bracket syntax, allowing you to create arbitrarily deeply nested fields. There are four main things you need to understand about how field names are used to read and write the form values in 🏁 Final Form.
+
+- `.` and `[` are treated the same.
+- `]` is ignored.
+- `Number` keys will result in array structures. [Why?](https://github.com/final-form/final-form/blob/master/docs/faq.md#why-do-my-numeric-keys-result-in-an-array-structure)
+- Setting `undefined` to a field value deletes any empty object – but not array! – structures. [Why?](https://github.com/final-form/final-form/blob/master/docs/faq.md#why-does--final-form-set-my--field-value-to-undefined)
+
+It is very similar to Lodash's [`_.set()`](https://lodash.com/docs/#set), except that empty structures are removed. Let's look at some examples:
+
+| Field Name    | Initial Structure                     | Setting Value | Result                         |
+| ------------- | ------------------------------------- | ------------- | ------------------------------ |
+| `bar`         | `{}`                                  | `'foo'`       | `{ bar: 'foo' }`               |
+| `bar.frog`    | `{}`                                  | `'foo'`       | `{ bar: { frog: 'foo' } }`     |
+| `bar[0]`      | `{}`                                  | `'foo'`       | `{ bar: [ 'foo' ] }`           |
+| `bar.0`       | `{}`                                  | `'foo'`       | `{ bar: [ 'foo' ] }`           |
+| `bar[1]`      | `{}`                                  | `'foo'`       | `{ bar: [ null, 'foo' ] }`     |
+| `bar[0].frog` | `{}`                                  | `'foo'`       | `{ bar: [ { frog: 'foo' } ] }` |
+| `bar`         | `{ bar: 'foo' }`                      | `undefined`   | `{ }`                          |
+| `bar.frog`    | `{ bar: { frog: 'foo' }, other: 42 }` | `undefined`   | `{ other: 42 }`                |
+| `bar.frog[0]` | `{ bar: { frog: [ 'foo' ] } }`        | `undefined`   | `{ bar: { frog: [ null ] } }`  |
+
+[Here is a sandbox](https://8ypq7n41z0.codesandbox.io/) that you can play around with to get a better understanding of how it works.
 
 ## API
 
@@ -340,13 +379,13 @@ field. Useful for subscribing to everything.
 An _à la carte_ list of all the possible things you can subscribe to for a form.
 Useful for subscribing to everything.
 
-### `ARRAY_ERROR: Symbol`
+### `ARRAY_ERROR: string`
 
-A special `Symbol` key used to return an error for an array of fields.
+A special `string` key used to return an error for an array of fields.
 
-### `FORM_ERROR: Symbol`
+### `FORM_ERROR: string`
 
-A special `Symbol` key used to return a whole-form error inside error objects
+A special `string` key used to return a whole-form error inside error objects
 returned from validation or submission.
 
 ### `getIn(state: Object, complexKey: string): any`
@@ -365,6 +404,14 @@ The current used version of 🏁 Final Form.
 
 #### `debug?: DebugFunction`
 
+#### `destroyOnUnregister?: boolean`
+
+If `true`, the value of a field will be destroyed when that field is unregistered. Defaults to `false`. Can be useful when creating dynamic forms where only form values displayed need be submitted.
+
+#### `keepDirtyOnReinitialize?: boolean`
+
+If `true`, only pristine values will be overwritten when `initialize(newValues)` is called. This can be useful for allowing a user to continue to edit a record while the record is being saved asynchronously, and the form is reinitialized to the saved values when the save is successful. Defaults to `false`.
+
 #### `initialValues?: Object`
 
 The initial values of your form. These will also be used to compare against the
@@ -379,18 +426,18 @@ Optional named mutation functions.
 Function to call when the form is submitted. There are three possible ways to
 write an `onSubmit` function:
 
-* Synchronously: returns `undefined` on success, or an `Object` of submission
+- Synchronously: returns `undefined` on success, or an `Object` of submission
   errors on failure
-* Asynchronously with a callback: returns `undefined`, calls `callback()` with
+- Asynchronously with a callback: returns `undefined`, calls `callback()` with
   no arguments on success, or with an `Object` of submission errors on failure.
-* Asynchronously with a `Promise`: returns a `Promise<?Object>` that resolves
+- Asynchronously with a `Promise`: returns a `Promise<?Object>` that resolves
   with no value on success or _resolves_ with an `Object` of submission errors
   on failure. The reason it _resolves_ with errors is to leave _rejection_ for
   when there is a server or communications error.
 
 Submission errors must be in the same shape as the values of the form. You may
 return a generic error for the whole form (e.g. `'Login Failed'`) using the
-special `FORM_ERROR` symbol key.
+special `FORM_ERROR` string key.
 
 #### `validate?: (values: Object) => Object | Promise<Object>`
 
@@ -398,20 +445,16 @@ A whole-record validation function that takes all the values of the form and
 returns any validation errors. There are three possible ways to write a
 `validate` function:
 
-* Synchronously: returns `{}` or `undefined` when the values are valid, or an
+- Synchronously: returns `{}` or `undefined` when the values are valid, or an
   `Object` of validation errors when the values are invalid.
-* Asynchronously with a `Promise`: returns a `Promise<?Object>` that resolves
+- Asynchronously with a `Promise`: returns a `Promise<?Object>` that resolves
   with no value on success or _resolves_ with an `Object` of validation errors
   on failure. The reason it _resolves_ with errors is to leave _rejection_ for
   when there is a server or communications error.
 
 Validation errors must be in the same shape as the values of the form. You may
-return a generic error for the whole form using the special `FORM_ERROR` symbol
+return a generic error for the whole form using the special `FORM_ERROR` string
 key.
-
-An optional callback for debugging that returns the form state and the states of
-all the fields. It's called _on every state change_. A typical thing to pass in
-might be `console.log`.
 
 #### `validateOnBlur?: boolean`
 
@@ -419,6 +462,10 @@ If `true`, validation will happen on blur. If `false`, validation will happen on
 change. Defaults to `false`.
 
 ### `DebugFunction: (state: FormState, fieldStates: { [string]: FieldState }) => void`
+
+An optional callback for debugging that receives the form state and the states of
+all the fields. It's called _on every state change_. A typical thing to pass in
+might be `console.log`.
 
 ### `Decorator: (form: FormApi) => Unsubscribe`
 
@@ -662,6 +709,10 @@ values, and `dirty` and `pristine` will be calculated by performing a
 shallow-equals between the current values and the values last initialized with.
 The form will be `pristine` after this call.
 
+#### `isValidationPaused: () => boolean`
+
+Returns `true` if validation is currently paused, `false` otherwise.
+
 #### `mutators: ?{ [string]: Function }`
 
 The state-bound versions of the mutators provided to [`Config`](#config).
@@ -681,10 +732,11 @@ that should return `undefined` if the value is valid, or an error. It can
 optionally return a `Promise` that _resolves_ (not rejects) to `undefined` or an
 error.
 
-#### `reset: () => void`
+#### `reset: (initialValues: ?Object) => void`
 
-Resets the values back to the initial values the form was initialized with. Or
-empties all the values if the form was not initialized.
+Resets the values back to the initial values the form was initialized with. Or empties all the values if the form was not initialized. If you provide `initialValues` they will be used as the new initial values.
+
+Note that if you are calling `reset()` and not specify new initial values, you must call it with no arguments. Be careful to avoid things like `promise.catch(reset)` or `onChange={form.reset}` in React, as they will get arguments passed to them and reinitialize your form.
 
 #### `resumeValidation: () => void`
 
@@ -721,6 +773,14 @@ key.
 
 An object containing all the current validation errors. The shape will match the
 shape of the form's values.
+
+#### `hasSubmitErrors?: boolean`
+
+`true` when the form currently has submit errors. Useful for distinguishing _why_ `invalid` is `true`.
+
+#### `hasValidationErrors?: boolean`
+
+`true` when the form currently has validation errors. Useful for distinguishing _why_ `invalid` is `true`. For example, if your form is `invalid` because of a submit error, you might also want to disable the submit button if user's changes to fix the submit errors causes the form to have sync validation errors.
 
 #### `initialValues?: Object`
 
@@ -799,7 +859,7 @@ value in `FormState`.
 #### `dirty?: boolean`
 
 When `true` the `FormSubscriber` will be notified of changes to the `dirty`
-value in `FormState`.
+value in `FormState`. This value is the opposite to the `pristine` value (`dirty = !pristine`).
 
 #### `dirtySinceLastSubmit?: boolean`
 
@@ -814,6 +874,16 @@ value in `FormState`.
 
 When `true` the `FormSubscriber` will be notified of changes to the `errors`
 value in `FormState`.
+
+#### `hasSubmitErrors?: boolean`
+
+When `true` the `FormSubscriber` will be notified of changes to the
+`hasSubmitErrors` value in `FormState`.
+
+#### `hasValidationErrors?: boolean`
+
+When `true` the `FormSubscriber` will be notified of changes to the
+`hasValidationErrors` value in `FormState`.
 
 #### `initialValues?: boolean`
 
@@ -1036,7 +1106,7 @@ modifies the form state.
 Takes a name, and a
 [`FieldSubscriber`](#fieldsubscriber-state-fieldstate--void),
 [`FieldSubscription`](#fieldsubscription--string-boolean-), and a
-[`FieldConfig`](#fieldconfig) and registers a field subscription.
+[`FieldConfig`](#fieldconfig) and registers a field subscription. [Learn more about how Field Names](#field-names).
 
 ### `Tools`
 

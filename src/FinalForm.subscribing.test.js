@@ -1,5 +1,5 @@
 import createForm from './FinalForm'
-import { FORM_ERROR } from './symbols'
+import { FORM_ERROR } from './constants'
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const onSubmitMock = (values, callback) => {}
@@ -72,6 +72,30 @@ describe('FinalForm.subscribing', () => {
     // field still called
     expect(fieldSpy).toHaveBeenCalledTimes(3)
     expect(fieldSpy.mock.calls[2][0].value).toBe('baz')
+  })
+
+  it('should allow form.change() to change any value, not just registered fields', () => {
+    const form = createForm({ onSubmit: onSubmitMock })
+
+    const formSpy = jest.fn()
+    form.subscribe(formSpy, { values: true })
+
+    // called with initial state
+    expect(formSpy).toHaveBeenCalledTimes(1)
+    expect(formSpy.mock.calls[0][0].values.foo).toBeUndefined()
+
+    // update field value
+    form.change('foo', 'bar')
+
+    // form subscriber notified
+    expect(formSpy).toHaveBeenCalledTimes(2)
+    expect(formSpy.mock.calls[1][0].values).toEqual({ foo: 'bar' })
+
+    // update field again, just for good measure
+    form.change('foo', 'baz')
+
+    expect(formSpy).toHaveBeenCalledTimes(3)
+    expect(formSpy.mock.calls[2][0].values).toEqual({ foo: 'baz' })
   })
 
   it('should not overwrite lastFormState every time a form subscriber is added', () => {
@@ -311,6 +335,91 @@ describe('FinalForm.subscribing', () => {
     // form has error again
     expect(spy).toHaveBeenCalledTimes(3)
     expect(spy.mock.calls[2][0].errors).toEqual({ foo: 'Why no foo?' })
+  })
+
+  it('should allow subscribing to hasValidationErrors', () => {
+    const { spy, change } = prepareFormSubscriber(
+      'foo',
+      {
+        hasValidationErrors: true
+      },
+      {
+        validate: values => {
+          const errors = {}
+          if (!values.foo) {
+            errors.foo = 'Why no foo?'
+          }
+          return errors
+        }
+      }
+    )
+
+    // one call with initial value
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy.mock.calls[0][0].hasValidationErrors).toBe(true)
+
+    change('bar')
+
+    // form no longer has error
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect(spy.mock.calls[1][0].hasValidationErrors).toBe(false)
+
+    change('baz')
+
+    // form error hasn't changed
+    expect(spy).toHaveBeenCalledTimes(2)
+
+    change('')
+
+    // form has error again
+    expect(spy).toHaveBeenCalledTimes(3)
+    expect(spy.mock.calls[2][0].hasValidationErrors).toBe(true)
+  })
+
+  it('should allow subscribing to all submit errors', () => {
+    const onSubmit = jest.fn(values => {
+      const errors = {}
+      if (!values.foo) {
+        errors.foo = 'Why no foo?'
+      }
+      return errors
+    })
+    const form = createForm({ onSubmit })
+    const spy = jest.fn()
+    form.subscribe(spy, { submitErrors: true })
+    expect(spy).toHaveBeenCalled()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy.mock.calls[0][0].submitErrors).toBeUndefined()
+
+    expect(onSubmit).not.toHaveBeenCalled()
+    form.submit()
+    expect(onSubmit).toHaveBeenCalled()
+
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect(spy.mock.calls[1][0].submitErrors).toEqual({ foo: 'Why no foo?' })
+  })
+
+  it('should allow subscribing to hasSubmitErrors', () => {
+    const onSubmit = jest.fn(values => {
+      const errors = {}
+      if (!values.foo) {
+        errors.foo = 'Why no foo?'
+      }
+      return errors
+    })
+    const form = createForm({ onSubmit })
+    const spy = jest.fn()
+    form.subscribe(spy, { hasSubmitErrors: true })
+    expect(spy).toHaveBeenCalled()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy.mock.calls[0][0].hasSubmitErrors).toBe(false)
+
+    expect(onSubmit).not.toHaveBeenCalled()
+    form.submit()
+    expect(onSubmit).toHaveBeenCalled()
+
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect(spy.mock.calls[1][0].hasSubmitErrors).toBe(true)
   })
 
   it('should allow validation function to return null', () => {

@@ -1,5 +1,5 @@
 import createForm from './FinalForm'
-import { ARRAY_ERROR } from './symbols'
+import { ARRAY_ERROR } from './constants'
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const onSubmitMock = (values, callback) => {}
@@ -499,6 +499,63 @@ describe('Field.validation', () => {
     expect(spy).toHaveBeenCalledTimes(1)
   })
 
+  it('should remove field-level validation errors when a field is unregistered', () => {
+    const form = createForm({ onSubmit: onSubmitMock })
+    const spy = jest.fn()
+    form.subscribe(spy, { errors: 1 })
+
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy.mock.calls[0][0].errors).toEqual({})
+
+    const unregister = form.registerField(
+      'username',
+      () => {},
+      { errors: true },
+      {
+        getValidator: () => value => (value ? undefined : 'Required')
+      }
+    )
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect(spy.mock.calls[1][0].errors).toEqual({ username: 'Required' })
+
+    unregister()
+
+    expect(spy).toHaveBeenCalledTimes(3)
+    expect(spy.mock.calls[2][0].errors).toEqual({})
+  })
+
+  it('should not remove record-level validation errors when a field is unregistered', () => {
+    const form = createForm({
+      onSubmit: onSubmitMock,
+      validate: values => ({ username: 'Required by record-level' })
+    })
+    const spy = jest.fn()
+    form.subscribe(spy, { errors: 1 })
+
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy.mock.calls[0][0].errors).toEqual({
+      username: 'Required by record-level'
+    })
+
+    const unregister = form.registerField(
+      'username',
+      () => {},
+      { errors: true },
+      {
+        getValidator: () => value => (value ? undefined : 'Required')
+      }
+    )
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect(spy.mock.calls[1][0].errors).toEqual({ username: 'Required' })
+
+    unregister()
+
+    expect(spy).toHaveBeenCalledTimes(3)
+    expect(spy.mock.calls[2][0].errors).toEqual({
+      username: 'Required by record-level'
+    })
+  })
+
   it('should allow field-level for array fields', () => {
     const form = createForm({ onSubmit: onSubmitMock })
     const array = jest.fn()
@@ -726,7 +783,9 @@ describe('Field.validation', () => {
     const fooValidate = jest.fn()
     const barValidate = jest.fn()
     const bazValidate = jest.fn()
+    expect(form.isValidationPaused()).toBe(false)
     form.pauseValidation()
+    expect(form.isValidationPaused()).toBe(true)
     form.registerField(
       'foo',
       () => {},
@@ -752,6 +811,7 @@ describe('Field.validation', () => {
     expect(bazValidate).not.toHaveBeenCalled()
 
     form.resumeValidation()
+    expect(form.isValidationPaused()).toBe(false)
 
     expect(validate).toHaveBeenCalledTimes(2)
     expect(fooValidate).toHaveBeenCalledTimes(1)
@@ -853,6 +913,31 @@ describe('Field.validation', () => {
     expect(foo).toHaveBeenCalledTimes(1)
     expect(bar).toHaveBeenCalledTimes(2)
     expect(bar.mock.calls[1][0].error).toBeUndefined()
+  })
+
+  it('should mark the form as valid when all required fields are completed', () => {
+    const form = createForm({ onSubmit: onSubmitMock })
+    const config = {
+      getValidator: () => value => (value ? undefined : 'Required'),
+      validateFields: []
+    }
+
+    const foo = jest.fn()
+    const bar = jest.fn()
+
+    form.registerField('foo', foo, { error: true }, config)
+    form.registerField('bar', bar, { error: true })
+
+    expect(foo).toHaveBeenCalled()
+    expect(foo).toHaveBeenCalledTimes(1)
+    expect(foo.mock.calls[0][0].error).toBe('Required')
+
+    form.change('foo', 'hi')
+
+    expect(foo).toHaveBeenCalledTimes(2)
+    expect(foo.mock.calls[1][0].error).toBe(undefined)
+
+    expect(form.getState().invalid).toBe(false)
   })
 
   it('should not blow away all field-level validation errors when one is remedied and one validateFields', () => {

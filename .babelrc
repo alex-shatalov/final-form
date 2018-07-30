@@ -1,14 +1,15 @@
 {
   "presets": [
     [
-      "env",
+      "@babel/preset-env",
       {
+        "loose": true,
         "targets": {
           "node": "8"
         }
       }
     ],
-    "stage-2"
+    ["@babel/preset-stage-2", { "decoratorsLegacy": true }]
   ],
   "plugins": ["transform-flow-strip-types"]
 }

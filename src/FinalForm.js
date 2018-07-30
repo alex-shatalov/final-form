@@ -10,6 +10,7 @@ import shallowEqual from './shallowEqual'
 import type {
   ChangeValue,
   Config,
+  ConfigKey,
   FieldConfig,
   FieldState,
   FieldSubscriber,
@@ -26,8 +27,17 @@ import type {
   Subscription,
   Unsubscribe
 } from './types'
-import { FORM_ERROR, ARRAY_ERROR } from './symbols'
-export const version = '4.3.1'
+import { FORM_ERROR, ARRAY_ERROR } from './constants'
+export const configOptions: ConfigKey[] = [
+  'debug',
+  'initialValues',
+  'keepDirtyOnReinitialize',
+  'mutators',
+  'onSubmit',
+  'validate',
+  'validateOnBlur'
+]
+export const version = '4.8.1'
 
 const tripleEquals: IsEqual = (a: any, b: any): boolean => a === b
 
@@ -55,6 +65,18 @@ export type StateFilter<T> = (
   force: boolean
 ) => ?T
 
+const hasAnyError = (errors: Object): boolean => {
+  return Object.keys(errors).some(key => {
+    const value = errors[key]
+
+    if (value && typeof value === 'object') {
+      return hasAnyError(value)
+    }
+
+    return typeof value !== 'undefined'
+  })
+}
+
 const convertToExternalFormState = ({
   // kind of silly, but it ensures type safety ¯\_(ツ)_/¯
   active,
@@ -77,6 +99,11 @@ const convertToExternalFormState = ({
   dirtySinceLastSubmit,
   error,
   errors,
+  hasSubmitErrors: !!(
+    submitError ||
+    (submitErrors && hasAnyError(submitErrors))
+  ),
+  hasValidationErrors: !!(error || hasAnyError(errors)),
   invalid: !valid,
   initialValues,
   pristine,
@@ -122,6 +149,8 @@ const createForm = (config: Config): FormApi => {
   }
   let {
     debug,
+    destroyOnUnregister,
+    keepDirtyOnReinitialize,
     initialValues,
     mutators,
     onSubmit,
@@ -163,15 +192,14 @@ const createForm = (config: Config): FormApi => {
   }
 
   const changeValue: ChangeValue = (state, name, mutate) => {
-    if (state.fields[name]) {
-      const before = getIn(state.formState.values, name)
-      const after = mutate(before)
-      state.formState.values = setIn(state.formState.values, name, after) || {}
-    }
+    const before = getIn(state.formState.values, name)
+    const after = mutate(before)
+    state.formState.values = setIn(state.formState.values, name, after) || {}
   }
 
   // bind state to mutators
   const getMutatorApi = key => (...args) => {
+    // istanbul ignore next
     if (mutators) {
       // ^^ causes branch coverage warning, but needed to appease the Flow gods
       const mutatableState = {
@@ -286,12 +314,15 @@ const createForm = (config: Config): FormApi => {
     // pare down field keys to actually validate
     let limitedFieldLevelValidation = false
     if (fieldChanged) {
-      const { validateFields } = fields[fieldChanged]
-      if (validateFields) {
-        limitedFieldLevelValidation = true
-        fieldKeys = validateFields.length
-          ? validateFields.concat(fieldChanged)
-          : [fieldChanged]
+      const changedField = fields[fieldChanged]
+      if (changedField) {
+        const { validateFields } = changedField
+        if (validateFields) {
+          limitedFieldLevelValidation = true
+          fieldKeys = validateFields.length
+            ? validateFields.concat(fieldChanged)
+            : [fieldChanged]
+        }
       }
     }
 
@@ -377,7 +408,7 @@ const createForm = (config: Config): FormApi => {
   }
 
   const notifyFieldListeners = (force: ?string) => {
-    if (inBatch) {
+    if (inBatch || validationPaused) {
       return
     }
     const { fields, fieldSubscribers, formState } = state
@@ -386,6 +417,29 @@ const createForm = (config: Config): FormApi => {
       const fieldState = publishFieldState(formState, field)
       const { lastFieldState } = field
       if (!shallowEqual(fieldState, lastFieldState)) {
+        // **************************************************************
+        // Curious about why a field is getting notified? Uncomment this.
+        // **************************************************************
+        // const diffKeys = Object.keys(fieldState).filter(
+        //   key => fieldState[key] !== (lastFieldState && lastFieldState[key])
+        // )
+        // console.debug(
+        //   'notifying',
+        //   name,
+        //   '\nField State\n',
+        //   diffKeys.reduce(
+        //     (result, key) => ({ ...result, [key]: fieldState[key] }),
+        //     {}
+        //   ),
+        //   '\nLast Field State\n',
+        //   diffKeys.reduce(
+        //     (result, key) => ({
+        //       ...result,
+        //       [key]: lastFieldState && lastFieldState[key]
+        //     }),
+        //     {}
+        //   )
+        // )
         field.lastFieldState = fieldState
         notify(
           fieldSubscribers[name],
@@ -397,8 +451,14 @@ const createForm = (config: Config): FormApi => {
     })
   }
 
+  const markAllFieldsTouched = (): void => {
+    Object.keys(state.fields).forEach(key => {
+      state.fields[key].touched = true
+    })
+  }
+
   const hasSyncErrors = () =>
-    !!(state.formState.error || Object.keys(state.formState.errors).length)
+    !!(state.formState.error || hasAnyError(state.formState.errors))
 
   const calculateNextFormState = (): FormState => {
     const { fields, formState, lastFormState } = state
@@ -416,6 +476,7 @@ const createForm = (config: Config): FormApi => {
       !fieldKeys.every(key =>
         fields[key].isEqual(
           getIn(formState.values, key),
+          // istanbul ignore next
           getIn(formState.lastSubmittedValues || {}, key) // || {} is for flow, but causes branch coverage complaint
         )
       )
@@ -424,8 +485,8 @@ const createForm = (config: Config): FormApi => {
     formState.valid =
       !formState.error &&
       !formState.submitError &&
-      !Object.keys(formState.errors).length &&
-      !(formState.submitErrors && Object.keys(formState.submitErrors).length)
+      !hasAnyError(formState.errors) &&
+      !(formState.submitErrors && hasAnyError(formState.submitErrors))
     const nextFormState = convertToExternalFormState(formState)
     const { touched, visited } = fieldKeys.reduce(
       (result, key) => {
@@ -467,7 +528,7 @@ const createForm = (config: Config): FormApi => {
     } else {
       notifying = true
       callDebug()
-      if (!inBatch) {
+      if (!inBatch && !validationPaused) {
         const { lastFormState } = state
         const nextFormState = calculateNextFormState()
         if (nextFormState !== lastFormState) {
@@ -524,8 +585,8 @@ const createForm = (config: Config): FormApi => {
     },
 
     change: (name: string, value: ?any) => {
-      const { fields, formState } = state
-      if (fields[name] && getIn(formState.values, name) !== value) {
+      const { formState } = state
+      if (getIn(formState.values, name) !== value) {
         changeValue(state, name, () => value)
         if (validateOnBlur) {
           notifyFieldListeners()
@@ -563,18 +624,32 @@ const createForm = (config: Config): FormApi => {
 
     initialize: (values: Object) => {
       const { fields, formState } = state
-      formState.initialValues = values
-      formState.values = values
+      if (!keepDirtyOnReinitialize) {
+        formState.values = values
+      }
       Object.keys(fields).forEach(key => {
         const field = fields[key]
         field.touched = false
         field.visited = false
+        if (keepDirtyOnReinitialize) {
+          const pristine = fields[key].isEqual(
+            getIn(formState.values, key),
+            getIn(formState.initialValues || {}, key)
+          )
+          if (pristine) {
+            // only update pristine values
+            formState.values = setIn(formState.values, key, getIn(values, key))
+          }
+        }
       })
+      formState.initialValues = values
       runValidation(undefined, () => {
         notifyFieldListeners()
         notifyFormListeners()
       })
     },
+
+    isValidationPaused: () => validationPaused,
 
     pauseValidation: () => {
       validationPaused = true
@@ -655,6 +730,12 @@ const createForm = (config: Config): FormApi => {
         if (!Object.keys(state.fieldSubscribers[name].entries).length) {
           delete state.fieldSubscribers[name]
           delete state.fields[name]
+          state.formState.errors =
+            setIn(state.formState.errors, name, undefined) || {}
+          if (destroyOnUnregister) {
+            state.formState.values =
+              setIn(state.formState.values, name, undefined) || {}
+          }
         }
         runValidation(undefined, () => {
           notifyFieldListeners()
@@ -663,12 +744,13 @@ const createForm = (config: Config): FormApi => {
       }
     },
 
-    reset: () => {
+    reset: (initialValues = state.formState.initialValues) => {
       state.formState.submitFailed = false
       state.formState.submitSucceeded = false
+      delete state.formState.submitError
       delete state.formState.submitErrors
       delete state.formState.lastSubmittedValues
-      api.initialize(state.formState.initialValues || {})
+      api.initialize(initialValues || {})
     },
 
     resumeValidation: () => {
@@ -688,8 +770,14 @@ const createForm = (config: Config): FormApi => {
         case 'debug':
           debug = value
           break
+        case 'destroyOnUnregister':
+          destroyOnUnregister = value
+          break
         case 'initialValues':
           api.initialize(value)
+          break
+        case 'keepDirtyOnReinitialize':
+          keepDirtyOnReinitialize = value
           break
         case 'mutators':
           mutators = value
@@ -727,12 +815,9 @@ const createForm = (config: Config): FormApi => {
     },
 
     submit: () => {
-      const { formState, fields } = state
+      const { formState } = state
       if (hasSyncErrors() && !persistentSubmitErrors) {
-        // mark all fields as touched
-        Object.keys(fields).forEach(key => {
-          fields[key].touched = true
-        })
+        markAllFieldsTouched()
         state.formState.submitFailed = true
         notifyFormListeners()
         notifyFieldListeners()
@@ -754,15 +839,12 @@ const createForm = (config: Config): FormApi => {
       let completeCalled = false
       const complete = (errors: ?Object) => {
         formState.submitting = false
-        if (
-          errors &&
-          (Object.keys(errors).length ||
-            Object.getOwnPropertySymbols(errors).length)
-        ) {
+        if (errors && hasAnyError(errors)) {
           formState.submitFailed = true
           formState.submitSucceeded = false
           formState.submitErrors = errors
           formState.submitError = errors[FORM_ERROR]
+          markAllFieldsTouched()
         } else {
           delete formState.submitErrors
           delete formState.submitError
@@ -773,8 +855,9 @@ const createForm = (config: Config): FormApi => {
         notifyFieldListeners()
         completeCalled = true
         if (resolvePromise) {
-          resolvePromise()
+          resolvePromise(errors)
         }
+        return errors
       }
       formState.submitting = true
       formState.submitFailed = false
